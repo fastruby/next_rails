@@ -27,7 +27,7 @@ RSpec.describe NextRails::BundleReport do
     end
 
     context 'when writing human-readable output' do
-      subject { described_class.outdated }
+      subject { described_class.outdated(false) }
 
       it 'invokes $stdout.puts properly', :aggregate_failures do
         allow($stdout)
@@ -54,7 +54,7 @@ RSpec.describe NextRails::BundleReport do
 
         expect(NextRails::BundleReport.build_json(out_of_date_gems, gems.count, sourced_from_git.count)).to eq(
           {
-            gems: [
+            outdated_gems: [
               { name: 'alpha', installed_version: '0.0.1', installed_age: alpha_age, latest_version: '0.0.2',
                 latest_age: bravo_age },
               { name: 'bravo', installed_version: '0.2.0', installed_age: bravo_age, latest_version: '0.2.2',

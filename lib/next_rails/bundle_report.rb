@@ -58,15 +58,15 @@ module NextRails
       header
     end
 
-    def self.outdated(human_readable = true)
+    def self.outdated(output_in_json)
       gems = NextRails::GemInfo.all
       out_of_date_gems = gems.reject(&:up_to_date?).sort_by(&:created_at)
       sourced_from_git = gems.select(&:sourced_from_git?)
 
-      if human_readable
-        output_to_stdout(out_of_date_gems, gems.count, sourced_from_git.count)
-      else
+      if output_in_json
         output_to_json(out_of_date_gems, gems.count, sourced_from_git.count)
+      else
+        output_to_stdout(out_of_date_gems, gems.count, sourced_from_git.count)
       end
     end
 
@@ -78,7 +78,7 @@ module NextRails
     def self.build_json(out_of_date_gems, total_gem_count, sourced_from_git_count)
       output = Hash.new { [] }
       out_of_date_gems.each do |gem|
-        output[:gems] += [
+        output[:outdated_gems] += [
           {
             name: gem.name,
             installed_version: gem.version,

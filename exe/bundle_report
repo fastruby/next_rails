@@ -17,6 +17,7 @@ at_exit do
       Examples:
         #{$0} compatibility --rails-version 5.0
         #{$0} outdated
+        #{$0} outdated --json
     EOS
 
     opts.separator ""
@@ -28,6 +29,10 @@ at_exit do
 
     opts.on("--include-rails-gems", "Include Rails gems in compatibility report (defaults to false)") do
       options[:include_rails_gems] = true
+    end
+
+    opts.on("--json", "Output JSON in outdated report (defaults to false)") do
+      options[:json] = true
     end
 
     opts.on_tail("-h", "--help", "Show this message") do
@@ -47,7 +52,7 @@ at_exit do
   report_type = ARGV.first
 
   case report_type
-  when "outdated" then NextRails::BundleReport.outdated
+  when "outdated" then NextRails::BundleReport.outdated(options.fetch(:json, false))
   else
     NextRails::BundleReport.compatibility(rails_version: options.fetch(:rails_version, "5.0"), include_rails_gems: options.fetch(:include_rails_gems, false))
   end
