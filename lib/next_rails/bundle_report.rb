@@ -63,14 +63,6 @@ module NextRails
       out_of_date_gems = gems.reject(&:up_to_date?).sort_by(&:created_at)
       sourced_from_git = gems.select(&:sourced_from_git?)
 
-      output_to_io(out_of_date_gems, gems.count, sourced_from_git.count)
-    end
-
-    def self.outdated
-      gems = NextRails::GemInfo.all
-      out_of_date_gems = gems.reject(&:up_to_date?).sort_by(&:created_at)
-      sourced_from_git = gems.select(&:sourced_from_git?)
-
       output_to_stdout(out_of_date_gems, gems.count, sourced_from_git.count)
     end
 
