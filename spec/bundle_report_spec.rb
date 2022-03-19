@@ -45,5 +45,26 @@ RSpec.describe NextRails::BundleReport do
         subject
       end
     end
+
+    context 'when writing JSON output' do
+      it 'JSON is correctly formatted' do
+        gems = NextRails::GemInfo.all
+        out_of_date_gems = gems.reject(&:up_to_date?).sort_by(&:created_at)
+        sourced_from_git = gems.select(&:sourced_from_git?)
+
+        expect(NextRails::BundleReport.build_json(out_of_date_gems, gems.count, sourced_from_git.count)).to eq(
+          {
+            gems: [
+              { name: 'alpha', installed_version: '0.0.1', installed_age: alpha_age, latest_version: '0.0.2',
+                latest_age: bravo_age },
+              { name: 'bravo', installed_version: '0.2.0', installed_age: bravo_age, latest_version: '0.2.2',
+                latest_age: charlie_age }
+            ],
+            sourced_from_git_count: sourced_from_git.count,
+            total_gem_count: gems.count
+          }
+        )
+      end
+    end
   end
 end

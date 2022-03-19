@@ -58,12 +58,43 @@ module NextRails
       header
     end
 
-    def self.outdated
+    def self.outdated(human_readable = true)
       gems = NextRails::GemInfo.all
       out_of_date_gems = gems.reject(&:up_to_date?).sort_by(&:created_at)
       sourced_from_git = gems.select(&:sourced_from_git?)
 
-      output_to_stdout(out_of_date_gems, gems.count, sourced_from_git.count)
+      if human_readable
+        output_to_stdout(out_of_date_gems, gems.count, sourced_from_git.count)
+      else
+        output_to_json(out_of_date_gems, gems.count, sourced_from_git.count)
+      end
+    end
+
+    def self.output_to_json(out_of_date_gems, total_gem_count, sourced_from_git_count)
+      obj = build_json(out_of_date_gems, total_gem_count, sourced_from_git_count)
+      puts JSON.pretty_generate(obj)
+    end
+
+    def self.build_json(out_of_date_gems, total_gem_count, sourced_from_git_count)
+      output = Hash.new { [] }
+      out_of_date_gems.each do |gem|
+        output[:gems] += [
+          {
+            name: gem.name,
+            installed_version: gem.version,
+            installed_age: gem.age,
+            latest_version: gem.latest_version.version,
+            latest_age: gem.latest_version.age
+          }
+        ]
+      end
+
+      output.merge(
+        {
+          sourced_from_git_count: sourced_from_git_count,
+          total_gem_count: total_gem_count
+        }
+      )
     end
 
     def self.output_to_stdout(out_of_date_gems, total_gem_count, sourced_from_git_count)
