@@ -2,6 +2,7 @@
 
 * [FEATURE: Initialize the Gemfile.next.lock to avoid major version jumps when used without an initial Gemfile.next.lock](https://github.com/fastruby/next_rails/pull/25)
 * [FEATURE: Drop `actionview` dependency because it is not really used](https://github.com/fastruby/next_rails/pull/26)
+* [FEATURE: `bundle_report outdated` outputs in JSON format when passed optional argument](https://github.com/fastruby/next_rails/pull/33)
 
 # v1.0.4 / 2021-04-09 [(commits)](https://github.com/fastruby/next_rails/compare/v1.0.3...v1.0.4)
 

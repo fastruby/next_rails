@@ -29,10 +29,17 @@ Learn about your Gemfile and see what needs updating.
 ```bash
 # Show all out-of-date gems
 bundle_report outdated
+
 # Show five oldest, out-of-date gems
 bundle_report outdated | head -n 5
+
+# Show all out-of-date gems in machine readable JSON format
+bundle_report outdated --json
+
 # Show gems that don't work with Rails 5.2.0
 bundle_report compatibility --rails-version=5.2.0
+
+# Show the usual help message
 bundle_report --help
 ```
 
