@@ -61,22 +61,36 @@ module NextRails
     def self.outdated
       gems = NextRails::GemInfo.all
       out_of_date_gems = gems.reject(&:up_to_date?).sort_by(&:created_at)
-      percentage_out_of_date = ((out_of_date_gems.count / gems.count.to_f) * 100).round
       sourced_from_git = gems.select(&:sourced_from_git?)
 
-      out_of_date_gems.each do |_gem|
-        header = "#{_gem.name} #{_gem.version}"
+      output_to_io(out_of_date_gems, gems.count, sourced_from_git.count)
+    end
+
+    def self.outdated
+      gems = NextRails::GemInfo.all
+      out_of_date_gems = gems.reject(&:up_to_date?).sort_by(&:created_at)
+      sourced_from_git = gems.select(&:sourced_from_git?)
+
+      output_to_stdout(out_of_date_gems, gems.count, sourced_from_git.count)
+    end
+
+    def self.output_to_stdout(out_of_date_gems, total_gem_count, sourced_from_git_count)
+      out_of_date_gems.each do |gem|
+        header = "#{gem.name} #{gem.version}"
 
         puts <<~MESSAGE
-          #{header.bold.white}: released #{_gem.age} (latest version, #{_gem.latest_version.version}, released #{_gem.latest_version.age})
+          #{header.bold.white}: released #{gem.age} (latest version, #{gem.latest_version.version}, released #{gem.latest_version.age})
         MESSAGE
       end
 
-      puts ""
-      puts <<~MESSAGE
-        #{"#{sourced_from_git.count}".yellow} gems are sourced from git
-        #{"#{out_of_date_gems.length}".red} of the #{gems.count} gems are out-of-date (#{percentage_out_of_date}%)
+      percentage_out_of_date = ((out_of_date_gems.count / total_gem_count.to_f) * 100).round
+      footer = <<~MESSAGE
+        #{sourced_from_git_count.to_s.yellow} gems are sourced from git
+        #{out_of_date_gems.count.to_s.red} of the #{total_gem_count} gems are out-of-date (#{percentage_out_of_date}%)
       MESSAGE
+
+      puts ''
+      puts footer
     end
   end
 end
