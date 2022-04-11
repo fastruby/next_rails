@@ -1,0 +1,29 @@
+#!/usr/bin/env ruby
+require "optparse"
+require "next_rails/version"
+
+options = {}
+option_parser = OptionParser.new do |opts|
+  opts.banner = <<-MESSAGE
+    Usage: #{__FILE__.to_s} [options]
+
+    Examples:
+      bin/next_rails --version info # Show the version of the gem installed
+  MESSAGE
+
+  opts.on("--version", "show version of the gem") do
+    options[:version] = true
+  end
+
+  opts.on_tail("-h", "--help", "Prints this help") do
+    puts opts
+    exit
+  end
+end
+
+option_parser.parse!
+
+if options.fetch(:version, false)
+  puts NextRails::VERSION
+  exit 2
+end

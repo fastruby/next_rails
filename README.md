@@ -85,6 +85,15 @@ deprecations --help # For more options and examples
 
 Right now, the path to the shitlist is hardcoded so make sure you store yours at `spec/support/deprecations.shitlist.json`.
 
+#### `next_rails` command
+
+You can use `next_rails` to fetch the version of the gem installed.
+
+```bash
+next_rails --version
+next_rails --help # For more options and examples
+```
+
 ### Dual-boot Rails next
 
 This command helps you dual-boot your application.

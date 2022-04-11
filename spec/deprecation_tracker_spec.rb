@@ -104,6 +104,33 @@ RSpec.describe DeprecationTracker do
       expect(File.read(shitlist_path)).to eq(expected_json)
     end
 
+    it "creates the directory if shitlist directory does not exist" do
+      FileUtils.mkdir_p("/tmp/test")
+      shitlist_path = Tempfile.new("tmp", "/tmp/test").path
+      FileUtils.rm(shitlist_path)
+      shitlist_path
+      subject = DeprecationTracker.new(shitlist_path)
+
+      subject.bucket = "bucket 1"
+      subject.add("b")
+      subject.add("b")
+      subject.add("a")
+
+      subject.save
+
+      expected_json = <<-JSON.chomp
+{
+  "bucket 1": [
+    "a",
+    "b",
+    "b"
+  ]
+}
+      JSON
+      expect(File.read(shitlist_path)).to eq(expected_json)
+      FileUtils.rm_r "/tmp/test"
+    end
+
     it "combines recorded and stored messages" do
       setup_tracker = DeprecationTracker.new(shitlist_path)
       setup_tracker.bucket = "bucket 1"

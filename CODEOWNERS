@@ -1,0 +1,4 @@
+# These code owners will be the default owners to everything in the repository.
+# Unless a posterior rule has precedence, they will be automatically requested
+# for review when a pull request is opened.
+*       @fastruby/black-bunny-brigade

@@ -130,9 +130,17 @@ class DeprecationTracker
 
   def save
     new_shitlist = create_temp_shitlist
+    create_if_shitlist_path_does_not_exist
     FileUtils.cp(new_shitlist.path, shitlist_path)
   ensure
     new_shitlist.delete if new_shitlist
+  end
+
+  def create_if_shitlist_path_does_not_exist
+    dirname = File.dirname(shitlist_path)
+    unless File.directory?(dirname)
+      FileUtils.mkdir_p(dirname)
+    end
   end
 
   def create_temp_shitlist
