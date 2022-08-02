@@ -5,8 +5,10 @@ require "json"
 require "net/http"
 
 module NextRails
-  class BundleReport
-    def self.compatibility(rails_version: nil, include_rails_gems: nil)
+  module BundleReport
+    extend self
+    
+    def compatibility(rails_version: nil, include_rails_gems: nil)
       incompatible_gems = NextRails::GemInfo.all.reject do |gem|
         gem.compatible_with_rails?(rails_version: rails_version) || (!include_rails_gems && gem.from_rails?)
       end.sort_by { |gem| gem.name }
@@ -50,13 +52,13 @@ module NextRails
       puts ERB.new(template, nil, "-").result(binding)
     end
 
-    def self.gem_header(_gem)
+    def gem_header(_gem)
       header = "#{_gem.name} #{_gem.version}".bold
       header << " (loaded from git)".magenta if _gem.sourced_from_git?
       header
     end
 
-    def self.compatible_ruby_version(rails_version)
+    def compatible_ruby_version(rails_version)
       # find all the versions of rails gem
       uri = URI('https://rubygems.org/api/v1/versions/rails.json')
       res = Net::HTTP.get_response(uri)
@@ -95,7 +97,7 @@ module NextRails
       end
     end
 
-    def self.outdated
+    def outdated
       gems = NextRails::GemInfo.all
       out_of_date_gems = gems.reject(&:up_to_date?).sort_by(&:created_at)
       percentage_out_of_date = ((out_of_date_gems.count / gems.count.to_f) * 100).round
