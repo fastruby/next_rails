@@ -1,9 +1,15 @@
-**IMPORTANT**: Please read the README before submitting pull requests for this project. Additionally, if your PR closes any open GitHub issues, make sure you include Closes #XXXX in your comment or use the option on the PR's sidebar to add related issues to auto-close the issue that your PR fixes.
+## Description
+<!--- Describe your changes in detail -->
 
-- [ ] Add an entry to `CHANGELOG.md` that links to this PR under the "main (unreleased)" heading.
+## Motivation and Context
+<!--- Why is this change required? What problem does it solve? -->
+<!--- If it fixes an open issue, please link to the issue here. -->
 
-Description:
+## How Has This Been Tested?
+<!--- Include any relevant details about your testing environment and the steps you followed -->
+<!--- For example: I am using [Safari|Firefox|Chrome] then I visit [the users path] -->
 
-Please include a summary of the change and which issue is fixed or which feature is introduced. If changes to the behavior are made, clearly describe what changes.
+## Screenshots:
+<!-- Add screenshots (applicable to any UI changes) -->
 
-I will abide by the [code of conduct](https://github.com/fastruby/next_rails/blob/main/CODE_OF_CONDUCT.md).
+**I will abide by the [code of conduct](https://github.com/fastruby/next_rails/blob/main/CODE_OF_CONDUCT.md)**

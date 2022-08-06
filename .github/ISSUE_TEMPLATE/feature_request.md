@@ -6,35 +6,18 @@ labels: enhancement
 assignees: ""
 ---
 
-**IMPORTANT: please make sure you ask yourself all intro questions and fill all sections of the template.**
+<!--- Before creating a feature request, please, answer the following questions -->
+<!--- Did you check the documentation for this feature? -->
+<!--- Did you make sure that this feature has not already been requested? -->
 
-**Before we start...:**
+## Description
+<!--- Provide a description of the change or addition you are proposing -->
 
-- [ ] I checked the documentation and didn't find this feature
-- [ ] I checked to make sure that this feature has not already been requested
+## Possible Implementation
+<!--- Optionally suggest an idea to implement or a workaround to fix the issue -->
 
-**Branch/Commit:**
-
-Inform what branch/commit/version of "next_rails" you are using.
-
-**Describe the feature:**
-
-Please include a detailed description of the feature you are requesting and any detail on it’s expected behavior.
-
-> **As a \<role name\>** > **I do \<something\>** > **And then I do \<another action\>** > **And I see \<some result\>**
-
-**Problem:**
-
-Please include a detailed description of the problem this feature would solve.
-
-> **As a \<role name\>** > **I want to \<do something\>** > **So that I can achieve a \<goal\>**
-
-**Mockups:**
-
-Include any mockup idea related to the requested feature if it applies.
-
-**Resources:**
-
-If you have resources related to the implementation or research for this feature, add them here.
+## Resources:
+<!--- If you have resources related to the implementation or research for this feature, add them here. -->
+<!--- If possible, include any mockup ideas related to the requested feature. -->
 
 **I will abide by the [code of conduct](https://github.com/fastruby/next_rails/blob/main/CODE_OF_CONDUCT.md)**
