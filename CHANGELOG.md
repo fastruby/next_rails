@@ -1,4 +1,5 @@
 # main [(unreleased)](https://github.com/fastruby/next_rails/compare/v1.0.4...main)
+* [CHORE: Added updated templates for bug fixes, feature requests and pull requests](https://github.com/fastruby/next_rails/pull/64) as per [this RFC](https://github.com/fastruby/RFCs/blob/main/2021-10-13-github-templates.md)
 
 * [FEATURE: Better documentation for contributing and releasing versions of this gem](https://github.com/fastruby/next_rails/pull/53)
 
