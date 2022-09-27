@@ -14,7 +14,7 @@ Gem::Specification.new do |spec|
   spec.homepage     = "https://github.com/fastruby/next_rails"
   spec.license       = "MIT"
 
-  spec.required_ruby_version = ">= 2.3.0"
+  spec.required_ruby_version = ">= 2.0"
 
   spec.files         = `git ls-files -z`.split("\x0").reject do |f|
     f.match(%r{^(test|spec|features)/})
@@ -25,9 +25,10 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "colorize", ">= 0.8.1"
   spec.add_development_dependency "bundler", ">= 1.16", "< 3.0"
-  spec.add_development_dependency "rake", "~> 13.0"
+  spec.add_development_dependency "rake"
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "simplecov", "~> 0.17.1"
   spec.add_development_dependency "timecop", "~> 0.9.1"
-  spec.add_development_dependency "webmock"
+  spec.add_development_dependency "rexml", "3.1.7.3" # limited on purpose, new versions don't work with old rubies
+  spec.add_development_dependency "webmock", "3.16.2" # limited on purpose, new versions don't work with old rubies
 end

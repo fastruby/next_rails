@@ -47,7 +47,11 @@ class DeprecationTracker
   end
 
   # There are two forms of the `warn` method: one for class Kernel and one for instances of Kernel (i.e., every Object)
-  Object.prepend(KernelWarnTracker)
+  if Object.respond_to?(:prepend)
+    Object.prepend(KernelWarnTracker)
+  else
+    Object.extend(KernelWarnTracker)
+  end
 
   # Ruby 2.2 and lower doesn't appear to allow overriding of Kernel.warn using `singleton_class.prepend`.
   if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.3.0")
@@ -198,7 +202,12 @@ class DeprecationTracker
       hash[bucket] = messages.sort
     end
 
-    normalized.reject {|_key, value| value.empty? }.sort_by {|key, _value| key }.to_h
+    # not using `to_h` here to support older ruby versions
+    {}.tap do |h|
+      normalized.reject {|_key, value| value.empty? }.sort_by {|key, _value| key }.each do |k ,v|
+        h[k] = v
+      end
+    end
   end
 
   def read_shitlist

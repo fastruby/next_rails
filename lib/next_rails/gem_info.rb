@@ -88,15 +88,24 @@ module NextRails
       end
     end
 
-    def compatible_with_rails?(rails_version:)
+    def latest_version
+      latest_gem_specification = Gem.latest_spec_for(name)
+      return NullGemInfo.new unless latest_gem_specification
+
+      GemInfo.new(latest_gem_specification)
+    rescue
+      NullGemInfo.new
+    end
+
+    def compatible_with_rails?(rails_version: nil)
       unsatisfied_rails_dependencies(rails_version: rails_version).empty?
     end
 
-    def unsatisfied_rails_dependencies(rails_version:)
+    def unsatisfied_rails_dependencies(rails_version: nil)
       spec_compatible_with_rails?(specification: gem_specification, rails_version: rails_version)
     end
 
-    def find_latest_compatible(rails_version:)
+    def find_latest_compatible(rails_version: nil)
       dependency = Gem::Dependency.new(@name)
       fetcher = Gem::SpecFetcher.new
 
@@ -129,7 +138,7 @@ module NextRails
       end
     end
 
-    def spec_compatible_with_rails?(specification:, rails_version:)
+    def spec_compatible_with_rails?(specification: nil, rails_version: nil)
       rails_dependencies = specification.runtime_dependencies.select {|dependency| RAILS_GEMS.include?(dependency.name) }
 
       rails_dependencies.reject do |rails_dependency|

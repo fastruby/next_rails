@@ -7,6 +7,7 @@ RSpec.describe NextRails::GemInfo do
   let(:spec) do
     Gem::Specification.new do |s|
       s.date = release_date
+      s.version = "1.0.0"
     end
   end
 
@@ -23,6 +24,13 @@ RSpec.describe NextRails::GemInfo do
 
     it "returns a date" do
       expect(subject.age).to eq(result)
+    end
+  end
+
+  describe "#up_to_date?" do
+    it "is up to date" do
+      allow(Gem).to receive(:latest_spec_for).and_return(spec)
+      expect(subject.up_to_date?).to be_truthy
     end
   end
 end
