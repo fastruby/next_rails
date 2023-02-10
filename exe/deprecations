@@ -83,6 +83,10 @@ option_parser = OptionParser.new do |opts|
     options[:verbose] = true
   end
 
+  opts.on("--path PATH_OR_FILE_GLOB", "Path to deprecation shitlist or glob for multiple files") do |path|
+    options[:path] = path
+  end
+
   opts.on_tail("-h", "--help", "Prints this help") do
     puts opts
     exit
@@ -92,7 +96,11 @@ end
 option_parser.parse!
 
 options[:mode] = ARGV.last
-path = options[:next] ? "spec/support/deprecation_warning.next.shitlist.json" : "spec/support/deprecation_warning.shitlist.json"
+path = if options[:path]
+  options[:path]
+else
+  options[:next] ? "spec/support/deprecation_warning.next.shitlist.json" : "spec/support/deprecation_warning.shitlist.json"
+end
 
 pattern_string = options.fetch(:pattern, ".+")
 pattern = /#{pattern_string}/
