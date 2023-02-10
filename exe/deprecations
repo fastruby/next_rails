@@ -37,6 +37,13 @@ def print_info(deprecation_warnings, opts = {})
   end
 end
 
+def extract_deprecations(path, pattern)
+  JSON.parse(File.read(path)).each_with_object({}) do |(test_file, messages), hash|
+    filtered_messages = messages.select {|message| message.match(pattern) }
+    hash[test_file] = filtered_messages if !filtered_messages.empty?
+  end
+end
+
 options = {}
 option_parser = OptionParser.new do |opts|
   opts.banner = <<-MESSAGE
@@ -90,9 +97,6 @@ path = options[:next] ? "spec/support/deprecation_warning.next.shitlist.json" : 
 pattern_string = options.fetch(:pattern, ".+")
 pattern = /#{pattern_string}/
 
-deprecation_warnings = JSON.parse(File.read(path)).each_with_object({}) do |(test_file, messages), hash|
-  filtered_messages = messages.select {|message| message.match(pattern) }
-  hash[test_file] = filtered_messages if !filtered_messages.empty?
 end
 
 if deprecation_warnings.empty?
