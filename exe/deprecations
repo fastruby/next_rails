@@ -105,6 +105,14 @@ end
 pattern_string = options.fetch(:pattern, ".+")
 pattern = /#{pattern_string}/
 
+file_paths = Dir.glob(path)
+
+if file_paths.empty?
+  abort "No files found with name #{options[:path]}"
+  exit 2
+else
+  deprecation_warnings = file_paths.map { |path| extract_deprecations(path, pattern) }
+                                   .inject(:merge)
 end
 
 if deprecation_warnings.empty?
