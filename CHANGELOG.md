@@ -1,6 +1,8 @@
-# main [(unreleased)](https://github.com/fastruby/next_rails/compare/v1.2.4...main)
+# main [(unreleased)](https://github.com/fastruby/next_rails/compare/v1.2.5...main)
 
 * Your changes/patches go here.
+
+# v1.2.5 / 2023-06-16 [(commits)](https://github.com/fastruby/next_rails/compare/v1.2.4...v1.2.5)
 
 - [FEATURE: Add NextRails.next? for application usage (e.g. Rails shims)](https://github.com/fastruby/next_rails/pull/97)
 - [BUGFIX: Support ERB versions older than 2.2.0](https://github.com/fastruby/next_rails/pull/100)
