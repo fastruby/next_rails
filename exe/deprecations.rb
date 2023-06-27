@@ -49,6 +49,7 @@ option_parser = OptionParser.new do |opts|
       bin/deprecations --next info # Show top ten deprecations for Rails 5
       bin/deprecations --pattern "ActiveRecord::Base" --verbose info # Show full details on deprecations matching pattern
       bin/deprecations --tracker-mode save --pattern "pass" run # Run tests that output deprecations matching pattern and update shitlist
+      bin/deprecations info --shitlist-path ./spec/support/deprecations.log.json # Show top ten deprecations for a given file.
 
     Modes:
       info
@@ -76,6 +77,10 @@ option_parser = OptionParser.new do |opts|
     options[:verbose] = true
   end
 
+  opts.on("--shitlist-path", "Set a custom path for the deprecations shitlist json file") do |shitlist_path|
+    options[:shitlist_path] = shitlist_path
+  end
+
   opts.on_tail("-h", "--help", "Prints this help") do
     puts opts
     exit
@@ -85,12 +90,14 @@ end
 option_parser.parse!
 
 options[:mode] = ARGV.last
-path = options[:next] ? "spec/support/deprecation_warning.next.shitlist.json" : "spec/support/deprecation_warning.shitlist.json"
+
+default_path = options[:next] ? "spec/support/deprecation_warning.next.shitlist.json" : "spec/support/deprecation_warning.shitlist.json"
+shitlist_path = options.fetch(:shitlist_path, default_path)
 
 pattern_string = options.fetch(:pattern, ".+")
 pattern = /#{pattern_string}/
 
-deprecation_warnings = JSON.parse(File.read(path)).each_with_object({}) do |(test_file, messages), hash|
+deprecation_warnings = JSON.parse(File.read(shitlist_path)).each_with_object({}) do |(test_file, messages), hash|
   filtered_messages = messages.select {|message| message.match(pattern) }
   hash[test_file] = filtered_messages if !filtered_messages.empty?
 end
