@@ -1,6 +1,7 @@
 # main [(unreleased)](https://github.com/fastruby/next_rails/compare/v1.3.0...main)
 
 * Your changes/patches go here.
+- [FEATURE: Support Rails 4 and before using the DeprecationTracker](https://github.com/fastruby/next_rails/pull/109)
 
 # v1.3.0 / 2023-06-16 [(commits)](https://github.com/fastruby/next_rails/compare/v1.2.4...v1.3.0)
 
