@@ -43,7 +43,7 @@ class DeprecationTracker
           @@deprecation_tracker.bucket = test_file_name.gsub(Rails.root.to_s, ".")
           super
         end
-      
+
         def after_teardown
           super
           @@deprecation_tracker.bucket = nil
@@ -74,9 +74,15 @@ class DeprecationTracker
     transform_message = opts[:transform_message]
     deprecation_tracker = DeprecationTracker.new(shitlist_path, transform_message, mode)
     if defined?(ActiveSupport)
-      ActiveSupport::Deprecation.behavior << -> (message, _callstack = nil, _deprecation_horizon = nil, _gem_name = nil) {
-        deprecation_tracker.add(message)
-      }
+      if Rails::VERSION::STRING < '5.0'
+        ActiveSupport::Deprecation.behavior = -> (message, _callstack) {
+          deprecation_tracker.add(message)
+        }
+      else
+        ActiveSupport::Deprecation.behavior << -> (message, _callstack = nil, _deprecation_horizon = nil, _gem_name = nil) {
+          deprecation_tracker.add(message)
+        }
+      end
     end
     KernelWarnTracker.callbacks << -> (message) { deprecation_tracker.add(message) }
 
