@@ -1,0 +1,88 @@
+#!/usr/bin/env ruby
+
+require "pty"
+
+command = ARGV.join(" ")
+
+if command == ""
+  puts "No command specified"
+  exit 1
+end
+
+puts "Running in parallel:"
+puts "BUNDLE_GEMFILE=Gemfile.next #{command}"
+puts command
+puts ""
+
+current_output = ""
+current_status = nil
+should_exit = false
+
+# Run the "current" version in a thread. Capture it's output to print at the end
+# Using PTY to capture the colorized output
+current_command = Thread.new do
+  # stdout_err is the mixed output of stdout and std_err
+  PTY.spawn(command) do |stdout_err, stdin, pid|
+    char = stdout_err.getc
+    while !should_exit && char
+      current_output << char
+      char = stdout_err.getc
+    end
+  rescue Errno::EIO # always raised when PTY runs out of input
+  ensure
+    if should_exit
+      # kill process with a SIGINT signal
+      Process.kill 2, pid
+    else
+      Process.waitpid pid # Wait for PTY to complete before continuing
+      current_status = $?.exitstatus
+    end
+  end
+end
+
+next_status = nil
+
+# Run the "next" version in another thread
+next_command = Thread.new do
+  puts "next results"
+  puts "=" * 80
+  system("BUNDLE_GEMFILE=Gemfile.next #{command}")
+  next_status = $?.exitstatus
+end
+
+# Handle Ctrl+C
+Signal.trap("INT") do
+  # handle pressing Ctrl+C twice to kill the commands without waiting
+  if should_exit
+    Thread.kill(next_command)
+    Thread.kill(current_command)
+  end
+
+  should_exit = true
+end
+
+# Wait for the "next" command to finish first
+next_command.join
+
+puts ""
+puts ""
+puts ""
+
+# Then wait for the "current" command to print its output
+puts "(waiting for current command to finish)"
+current_command.join
+puts "current results"
+puts "=" * 80
+puts current_output
+
+# check exit statuses, if both are successful exit with 0
+if current_status == 0 && next_status == 0
+  exit 0
+elsif should_exit
+  puts "Terminated by user"
+  exit 1
+else
+  puts "Current command exited with: #{current_status}"
+  puts "Next command exited with: #{next_status}"
+  exit 1
+end
