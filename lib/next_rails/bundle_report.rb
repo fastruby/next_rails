@@ -8,8 +8,8 @@ module NextRails
   module BundleReport
     extend self
 
-    def compatibility(rails_version: nil, include_rails_gems: nil)
-      incompatible_gems = NextRails::GemInfo.all.reject do |gem|
+    def compatibility(rails_version: nil, include_rails_gems: nil, gemfile_path: nil, gemfile_lock_path: nil)
+      incompatible_gems = NextRails::GemInfo.all(gemfile_path, gemfile_lock_path).reject do |gem|
         gem.compatible_with_rails?(rails_version: rails_version) || (!include_rails_gems && gem.from_rails?)
       end.sort_by { |gem| gem.name }
 

@@ -37,6 +37,14 @@ at_exit do
       options[:include_rails_gems] = true
     end
 
+    opts.on("--gemfile-path [STRING]", "Gemfile path") do |gemfile_path|
+      options[:gemfile_path] = gemfile_path
+    end
+
+    opts.on("--gemfile-lock-path [STRING]", "Gemfile.lock path") do |gemfile_lock_path|
+      options[:gemfile_lock_path] = gemfile_lock_path
+    end
+
     opts.on("--json", "Output JSON in outdated report (defaults to false)") do
       options[:format] = 'json'
     end
@@ -61,7 +69,9 @@ at_exit do
   when "ruby_check" then NextRails::BundleReport.compatible_ruby_version(rails_version: options.fetch(:rails_version))
   when "outdated" then NextRails::BundleReport.outdated(options.fetch(:format, nil))
   else
-    NextRails::BundleReport.compatibility(rails_version: options.fetch(:rails_version, "5.0"), include_rails_gems: options.fetch(:include_rails_gems, false))
+    NextRails::BundleReport.compatibility(rails_version: options.fetch(:rails_version, "5.0"),
+                                          include_rails_gems: options.fetch(:include_rails_gems, false),
+                                          gemfile_path: options[:gemfile_path], gemfile_lock_path: options[:gemfile_lock_path])
   end
 end
 

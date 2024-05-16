@@ -44,8 +44,13 @@ module NextRails
       "railties",
     ].freeze
 
-    def self.all
-      Gem::Specification.each.map do |gem_specification|
+    def self.all(gemfile_path, gemfile_lock_path)
+      specs = if !gemfile_path.nil? && !gemfile_lock_path.nil? # Parse the specified gem file if the Gemfile and Gemfile.lock is provided
+                Bundler::Definition.build(gemfile_path, gemfile_lock_path, false).specs
+              else
+                Gem::Specification # Parse the project's Gemfile and Gemfile.lock
+              end
+      specs.each.map do |gem_specification|
         new(gem_specification)
       end
     end
