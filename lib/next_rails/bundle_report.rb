@@ -17,7 +17,7 @@ module NextRails
 
       incompatible_gems_by_state = incompatible_gems.group_by { |gem| gem.state(rails_version) }
 
-      puts erb_output(incompatible_gems_by_state, incompatible_gems, rails_version)
+      { incompatible_gems_by_state: incompatible_gems_by_state, incompatible_gems: incompatible_gems, rails_version: rails_version }
     end
 
     def erb_output(incompatible_gems_by_state, incompatible_gems, rails_version)

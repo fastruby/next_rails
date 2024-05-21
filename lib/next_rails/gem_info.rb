@@ -44,9 +44,10 @@ module NextRails
       "railties",
     ].freeze
 
-    def self.all(gemfile_path, gemfile_lock_path)
-      specs = if !gemfile_path.nil? && !gemfile_lock_path.nil? # Parse the specified gem file if the Gemfile and Gemfile.lock is provided
-                Bundler::Definition.build(gemfile_path, gemfile_lock_path, false).specs
+    def self.all(gemfile, gemfile_lock_path)
+      specs = if !gemfile_lock_path.nil? # Parse the specified Gemfile if the Gemfile and Gemfile.lock is provided
+                lockfile_content = File.read(gemfile_lock_path)
+                Bundler::LockfileParser.new(lockfile_content).specs
               else
                 Gem::Specification # Parse the project's Gemfile and Gemfile.lock
               end
@@ -146,7 +147,7 @@ module NextRails
     end
 
     def spec_compatible_with_rails?(specification: nil, rails_version: nil)
-      rails_dependencies = specification.runtime_dependencies.select {|dependency| RAILS_GEMS.include?(dependency.name) }
+      rails_dependencies = specification.dependencies.select {|dependency| RAILS_GEMS.include?(dependency.name) }
 
       rails_dependencies.reject do |rails_dependency|
         rails_dependency.requirement.satisfied_by?(Gem::Version.new(rails_version))
