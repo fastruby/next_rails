@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 require "optparse"
 require "next_rails/version"
+require_relative "../lib/next_rails/upgrade_from"
 
 options = {}
 option_parser = OptionParser.new do |opts|
@@ -15,10 +16,15 @@ option_parser = OptionParser.new do |opts|
     options[:version] = true
   end
 
+  opts.on("--upgrade_from [STRING]", "Rails version to check next upgrade target") do |current_version|
+    options[:current_version] = current_version
+  end
+
   opts.on_tail("-h", "--help", "Prints this help") do
     puts opts
     exit
   end
+
 end
 
 option_parser.parse!
@@ -26,4 +32,9 @@ option_parser.parse!
 if options.fetch(:version, false)
   puts NextRails::VERSION
   exit 2
+end
+
+if options.fetch(:current_version, false)
+  puts NextRails::UpgradeFrom.current_version(options[:current_version])
+  # this is where we are going to return the message
 end
