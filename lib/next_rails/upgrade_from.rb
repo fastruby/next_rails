@@ -3,11 +3,11 @@ require 'byebug'
 
 class NextRails::UpgradeFrom
 
- def initialize(current_version)
-  @current_version = current_version
-  url = "https://roadrunner-staging-5ff1a4e7a439.herokuapp.com/api/v1/next_versions?current_rails_version=#{@current_version}"
-  @next_versions_res = NextRails::HttpClient.connect(url)
- end
+  def initialize(current_version)
+    @current_version = current_version
+    url = "https://roadrunner-staging-5ff1a4e7a439.herokuapp.com/api/v1/next_versions?current_rails_version=#{@current_version}"
+    @next_versions_res = NextRails::HttpClient.connect(url)
+  end
 
   def self.current_version(current_version)
     new(current_version).print_versions
