@@ -15,8 +15,13 @@ class NextRails::UpgradeFrom
 
   def check_version
     return @next_versions_res['detail'] if @next_versions_res.fetch('detail', false)
-    rails_v = check_rails_version
-    rails_v + check_ruby_version
+    check_rails_version + check_ruby_version
+  end
+
+  private
+
+  def ruby_versions
+    @next_versions_res['required_ruby']
   end
 
   def check_rails_version
@@ -28,14 +33,8 @@ class NextRails::UpgradeFrom
   end
 
   def check_ruby_version
-    ruby_versions = @next_versions_res['required_ruby']
-
-    if ruby_versions.any?
-      versions_text = ruby_versions.join(', ')
-      "The recommended Ruby version#{'s' if ruby_versions.length > 1} for this jump is #{versions_text}."
-    else
-      ""
-    end
+    return "" if ruby_versions.empty?
+    "The recommended Ruby version#{'s' if ruby_versions.length > 1} for this jump is #{ruby_versions.join(', ')}."
   end
 
 end
