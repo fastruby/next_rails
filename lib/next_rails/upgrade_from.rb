@@ -10,17 +10,17 @@ class NextRails::UpgradeFrom
  end
 
   def self.current_version(current_version)
-    new(current_version).check_version
+    new(current_version).print_versions
   end
 
-  def check_version
+  def print_versions
     return @next_versions_res['detail'] if @next_versions_res.fetch('detail', false)
     check_rails_version + check_ruby_version
   end
 
   private
 
-  def ruby_versions
+  def ruby_version
     @next_versions_res['required_ruby']
   end
 
@@ -33,8 +33,8 @@ class NextRails::UpgradeFrom
   end
 
   def check_ruby_version
-    return "" if ruby_versions.empty?
-    "The recommended Ruby version#{'s' if ruby_versions.length > 1} for this jump is #{ruby_versions.join(', ')}."
+    return "" if ruby_version.empty?
+    "The recommended Ruby version#{'s' if ruby_version.length > 1} for this jump is #{ruby_version.join(', ')}."
   end
 
 end
