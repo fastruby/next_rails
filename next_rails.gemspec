@@ -29,6 +29,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "simplecov", "~> 0.17.1"
   spec.add_development_dependency "timecop", "~> 0.9.1"
   spec.add_development_dependency "byebug"
-  spec.add_development_dependency "rexml", "3.3.8" # limited on purpose, new versions don't work with old rubies
+  spec.add_development_dependency "rexml", "3.4.0" # limited on purpose, new versions don't work with old rubies
   spec.add_development_dependency "webmock", "3.20.0"
 end
