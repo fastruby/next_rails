@@ -1,5 +1,4 @@
-require_relative './http_client.rb'
-require 'byebug'
+require_relative "http_client"
 
 class NextRails::UpgradeFrom
 
@@ -36,5 +35,4 @@ class NextRails::UpgradeFrom
     return "" if ruby_version.empty?
     "The recommended Ruby version#{'s' if ruby_version.length > 1} for this jump is #{ruby_version.join(', ')}."
   end
-
 end

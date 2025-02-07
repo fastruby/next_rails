@@ -36,5 +36,4 @@ end
 
 if options.fetch(:current_version, false)
   puts NextRails::UpgradeFrom.current_version(options[:current_version])
-  # this is where we are going to return the message
 end
