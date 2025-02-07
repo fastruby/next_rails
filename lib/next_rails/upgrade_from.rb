@@ -27,18 +27,6 @@ class NextRails::UpgradeFrom
     end
   end
 
-  # def check_ruby_version
-  #   if @next_versions_res['required_ruby'].any? && @next_versions_res['required_ruby'].length == 2
-  #     "The recommended Ruby versions for this jump is #{@next_versions_res['required_ruby'][0]}, #{@next_versions_res['required_ruby'][1]}."
-  #   elsif @next_versions_res['required_ruby'].any? && @next_versions_res['required_ruby'].length == 3
-  #     "The recommended Ruby versions for this jump is #{@next_versions_res['required_ruby'][0]}, #{@next_versions_res['required_ruby'][1]}, #{@next_versions_res['required_ruby'][2]}."
-  #   elsif @next_versions_res['required_ruby'].any? && @next_versions_res['required_ruby'].length == 1
-  #     "The recommended Ruby version for this jump is #{@next_versions_res['required_ruby'][0]}."
-  #   else
-  #     ""
-  #   end
-  # end
-
   def check_ruby_version
     ruby_versions = @next_versions_res['required_ruby']
 
@@ -49,4 +37,5 @@ class NextRails::UpgradeFrom
       ""
     end
   end
+
 end
