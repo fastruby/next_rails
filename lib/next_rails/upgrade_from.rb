@@ -1,13 +1,12 @@
 class NextRails::UpgradeFrom
-  URL = ENV.fetch("UPGRADE_FROM_URL") { "https://roadrunner-staging-5ff1a4e7a439.herokuapp.com/api/v1/next_versions" }
 
-  def initialize(current_version)
+  def initialize(current_version, response)
     @current_version = current_version
-    @response = NextRails::HttpClient.get(URL, {current_rails_version: @current_version})
+    @response = response
   end
 
-  def self.current_version(current_version)
-    new(current_version).print_versions
+  def self.report(current_version, response)
+    new(current_version, response).print_versions
   end
 
   def print_versions
@@ -30,7 +29,7 @@ class NextRails::UpgradeFrom
       "The next Rails target upgrade should be #{@response['next_rails']}.\n\n"
     else
       "\nThe latest patch for Rails #{@current_version} is #{@response['current_latest_patch']}.\n\n" +
-      "Before going to the next Rails version, it is strongly recommended upgrading to the latest patch (v#{@response['current_latest_patch']}).\n\n" +
+      "It is strongly recommended to upgrade to the latest patch before upgrading to the next Rails version.\n\n" +
       "The next Rails target upgrade should be #{@response['next_rails']}.\n\n"
     end
   end
