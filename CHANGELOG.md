@@ -10,6 +10,7 @@
 
 # v1.4.3 / 2025-02-20 [(commits)](https://github.com/fastruby/next_rails/compare/v1.4.2...v1.4.3)
 
+- [Move rails_version compatibility to its own class](https://github.com/fastruby/next_rails/pull/137)
 - [Add next_rails --init](https://github.com/fastruby/next_rails/pull/139)
 - [Add Ruby 3.4 support](https://github.com/fastruby/next_rails/pull/133)
 

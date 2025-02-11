@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "spec_helper"
-require "next_rails/bundle_report/ruby_version_compatibility"
 
 RSpec.describe NextRails::BundleReport::RubyVersionCompatibility do
   let(:ruby_3_0_gem) do
