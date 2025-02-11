@@ -1,5 +1,4 @@
 require "spec_helper"
-require "next_rails/http_client"
 
 RSpec.describe NextRails::HttpClient do
   describe "#get" do

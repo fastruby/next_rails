@@ -2,9 +2,11 @@
 
 require "next_rails/gem_info"
 require "next_rails/version"
+require "next_rails/http_client"
 require "next_rails/bundle_report"
 require "next_rails/bundle_report/ruby_version_compatibility"
 require "deprecation_tracker"
+require "next_rails/upgrade_from"
 
 module NextRails
   @@next_bundle_gemfile = nil

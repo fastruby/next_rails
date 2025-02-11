@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 require "optparse"
 require "next_rails/version"
-require_relative "../lib/next_rails/upgrade_from"
+require "next_rails"
 
 options = {}
 option_parser = OptionParser.new do |opts|

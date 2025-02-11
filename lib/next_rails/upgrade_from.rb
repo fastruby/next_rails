@@ -1,5 +1,3 @@
-require_relative "http_client"
-
 class NextRails::UpgradeFrom
   URL = ENV.fetch("UPGRADE_FROM_URL") { "https://roadrunner-staging-5ff1a4e7a439.herokuapp.com/api/v1/next_versions" }
 
