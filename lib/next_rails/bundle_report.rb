@@ -21,7 +21,8 @@ module NextRails
 
       puts erb_output(incompatible_gems_by_state, incompatible_gems, rails_version)
 
-      # we want a return value that is not nil
+      {incompatible_gems_by_state: incompatible_gems_by_state, incompatible_gems: incompatible_gems, rails_version: rails_version}
+      
     end
 
     def erb_output(incompatible_gems_by_state, incompatible_gems, rails_version)

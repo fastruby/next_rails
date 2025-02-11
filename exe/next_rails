@@ -38,6 +38,6 @@ end
 if options.fetch(:current_version, false)
   url = ENV.fetch("UPGRADE_FROM_URL") { "https://roadrunner-staging-5ff1a4e7a439.herokuapp.com/api/v1/next_versions" }
   resp = NextRails::HttpClient.get(url, {current_rails_version: options[:current_version]})
-  next_rails = NextRails::UpgradeFrom.report(options[:current_version], resp)
-  puts next_rails
+  puts NextRails::UpgradeFrom.report(options[:current_version], resp)
+  NextRails::BundleReport.compatibility(rails_version: resp["next_rails"], ruby_version: nil, include_rails_gems: false)
 end

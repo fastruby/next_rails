@@ -6,10 +6,10 @@ class NextRails::UpgradeFrom
   end
 
   def self.report(current_version, response)
-    new(current_version, response).print_versions
+    new(current_version, response).print_report
   end
 
-  def print_versions
+  def print_report
     return @response['detail'] if @response.fetch('detail', false)
 
     check_rails_version + check_ruby_version
