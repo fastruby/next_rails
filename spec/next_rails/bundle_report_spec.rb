@@ -67,7 +67,7 @@ RSpec.describe NextRails::BundleReport do
   describe ".compatibility" do
     describe "output" do
       it "returns ERB generated output" do
-        output = NextRails::BundleReport.erb_output({}, [], 7.0)
+        output = NextRails::BundleReport::RailsVersionCompatibility.new(options: { rails_version: 7.0 }).generate
         expect(output).to match "gems incompatible with Rails 7.0"
       end
     end

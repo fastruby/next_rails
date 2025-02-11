@@ -1,5 +1,6 @@
 # main [(unreleased)](https://github.com/fastruby/next_rails/compare/v1.4.2...main)
 
+- [Move rails_version compatibility to its own class](https://github.com/fastruby/next_rails/pull/137)
 - [Add next_rails --init](https://github.com/fastruby/next_rails/pull/139)
 - [Add Ruby 3.4 support](https://github.com/fastruby/next_rails/pull/133)
 
