@@ -15,27 +15,17 @@ class NextRails::UpgradeFrom
     check_rails_version + check_ruby_version
   end
 
-  def self.replace_gem_with_condition(gem_name, conditional_statement)
-    gemfile_path = File.join(Dir.pwd, "Gemfile")
-    lines = File.readlines(gemfile_path)
-
-    lines.each_with_index do |line, index|
-      if line.match?(/^\s*gem ['"]#{gem_name}['"]/)
-        original_gem = line.strip
-        new_block = <<~RUBY
-          if next?
-            #{conditional_statement}
-          else
-            #{original_gem}
-          end
-        RUBY
-
-        lines[index] = new_block
-        break
-      end
+  def self.update_gemfile(gems)
+    gem_names = []
+    gems.each do |gem|
+      gem_names << gem[:name]
+      NextRails::UpgradeFrom.replace_gem_with_condition(gem[:name], "gem '#{gem[:name]}', '#{gem[:version]}'")
     end
 
-    File.write(gemfile_path, lines.join)
+    if gem_names.any?
+      puts "\nThe Gemfile has been modified to include the updated gems."
+      puts "Run `bundle update #{gem_names.join(' ')} --conservative`."
+    end
   end
 
   private
@@ -65,6 +55,29 @@ class NextRails::UpgradeFrom
 
   def latest_patch?
     @current_version == @response['current_latest_patch']
+  end
+
+  def self.replace_gem_with_condition(gem_name, conditional_statement)
+    gemfile_path = File.join(Dir.pwd, "Gemfile")
+    lines = File.readlines(gemfile_path)
+
+    lines.each_with_index do |line, index|
+      if line.match?(/^\s*gem ['"]#{gem_name}['"]/)
+        original_gem = line.strip
+        new_block = <<~RUBY
+          if next?
+            #{conditional_statement}
+          else
+            #{original_gem}
+          end
+        RUBY
+
+        lines[index] = new_block
+        break
+      end
+    end
+
+    File.write(gemfile_path, lines.join)
   end
 
 end

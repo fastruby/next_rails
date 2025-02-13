@@ -21,7 +21,7 @@ module NextRails
 
       puts erb_output(incompatible_gems_by_state, incompatible_gems, rails_version)
 
-      { found_compatible_gems: found_compatible_gems(incompatible_gems_by_state[:found_compatible]) }
+      found_compatible_gems(incompatible_gems_by_state[:found_compatible])
     end
 
     def erb_output(incompatible_gems_by_state, incompatible_gems, rails_version)

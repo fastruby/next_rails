@@ -42,13 +42,8 @@ if options.fetch(:current_version, false)
 
   return if resp["next_rails"].nil?
 
-  incompatabile_gems = NextRails::BundleReport.compatibility(rails_version: resp["next_rails"], ruby_version: nil, include_rails_gems: false)
+  gems = NextRails::BundleReport.compatibility(rails_version: resp["next_rails"])
+                                .prepend({name: "rails", version: resp["next_rails"]})
 
-  incompatabile_gems[:found_compatible_gems] << {:name=>"rails", :version=> resp["next_rails"]}
-
-  incompatabile_gems[:found_compatible_gems].each do |gem|
-    NextRails::UpgradeFrom.replace_gem_with_condition(gem[:name], "gem '#{gem[:name]}', '#{gem[:version]}'")
-  end
-
-  puts "\nThe Gemfile has been modified to include the updated gems."
+  NextRails::UpgradeFrom.update_gemfile(gems)
 end
