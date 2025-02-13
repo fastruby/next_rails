@@ -15,6 +15,30 @@ class NextRails::UpgradeFrom
     check_rails_version + check_ruby_version
   end
 
+  def self.replace_gem_with_condition(gem_name, conditional_statement)
+    gemfile_path = File.join(Dir.pwd, "Gemfile")
+    lines = File.readlines(gemfile_path)
+
+    lines.each_with_index do |line, index|
+      if line.match?(/^\s*gem ['"]#{gem_name}['"]/)
+        original_gem = line.strip
+        new_block = <<~RUBY
+          if next?
+            #{conditional_statement}
+          else
+            #{original_gem}
+          end
+        RUBY
+
+        lines[index] = new_block
+        break
+      end
+    end
+
+    File.write(gemfile_path, lines.join)
+    puts "Replaced #{gem_name} with a conditional statement."
+  end
+
   private
 
   def ruby_version
@@ -43,4 +67,8 @@ class NextRails::UpgradeFrom
   def latest_patch?
     @current_version == @response['current_latest_patch']
   end
+
 end
+
+
+
