@@ -37,7 +37,7 @@ class NextRails::UpgradeFrom
   def check_ruby_version
     return "" if ruby_version.empty?
 
-    "The recommended Ruby version#{'s' if ruby_version.length > 1} for the upgrade #{ruby_version.length > 1 ? 'are' : 'is' } #{ruby_version.join(', ')}.\n\n"
+    "The required Ruby version#{'s' if ruby_version.length > 1} for the upgrade #{ruby_version.length > 1 ? 'are' : 'is' } #{ruby_version.join(', ')}.\n\n"
   end
 
   def latest_patch?
