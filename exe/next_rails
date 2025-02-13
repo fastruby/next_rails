@@ -39,11 +39,16 @@ if options.fetch(:current_version, false)
   url = ENV.fetch("UPGRADE_FROM_URL") { "https://roadrunner-staging-5ff1a4e7a439.herokuapp.com/api/v1/next_versions" }
   resp = NextRails::HttpClient.get(url, {current_rails_version: options[:current_version]})
   puts NextRails::UpgradeFrom.report(options[:current_version], resp)
-  incompatabile_gems = NextRails::BundleReport.compatibility(rails_version: resp["next_rails"], ruby_version: nil, include_rails_gems: false) if resp["next_rails"]
 
-  incompatabile_gems[:found_compatible_gems] << {:name=>"rails", :version=>Gem::Version.new(resp["next_rails"])}
+  return if resp["next_rails"].nil?
+
+  incompatabile_gems = NextRails::BundleReport.compatibility(rails_version: resp["next_rails"], ruby_version: nil, include_rails_gems: false)
+
+  incompatabile_gems[:found_compatible_gems] << {:name=>"rails", :version=> resp["next_rails"]}
 
   incompatabile_gems[:found_compatible_gems].each do |gem|
-    NextRails::UpgradeFrom.replace_gem_with_condition(gem[:name], "gem '#{gem[:name]}', '#{gem[:version].version}'")
+    NextRails::UpgradeFrom.replace_gem_with_condition(gem[:name], "gem '#{gem[:name]}', '#{gem[:version]}'")
   end
+
+  puts "\nThe Gemfile has been modified to include the updated gems."
 end

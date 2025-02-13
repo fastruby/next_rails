@@ -36,7 +36,6 @@ class NextRails::UpgradeFrom
     end
 
     File.write(gemfile_path, lines.join)
-    puts "Replaced #{gem_name} with a conditional statement."
   end
 
   private

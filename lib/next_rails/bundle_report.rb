@@ -76,7 +76,7 @@ module NextRails
     end
 
     def found_compatible_gems(_gems)
-      return [] if _gems.nil? || _gems.is_?(Hash) || _gems.empty?
+      return [] if _gems.nil? || _gems.is_a?(Hash) || _gems.empty?
 
       _gems.map { |_gem| { name: _gem.name, version: _gem.latest_version.version.to_s } }
     end
