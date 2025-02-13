@@ -21,8 +21,7 @@ module NextRails
 
       puts erb_output(incompatible_gems_by_state, incompatible_gems, rails_version)
 
-      {incompatible_gems_by_state: incompatible_gems_by_state, incompatible_gems: incompatible_gems, rails_version: rails_version}
-      
+      { found_compatible_gems: found_compatible_gems(incompatible_gems_by_state[:found_compatible]) }
     end
 
     def erb_output(incompatible_gems_by_state, incompatible_gems, rails_version)
@@ -74,6 +73,12 @@ module NextRails
       header = Rainbow("#{_gem.name} #{_gem.version}").bold
       header << Rainbow(" (loaded from git)").magenta if _gem.sourced_from_git?
       header
+    end
+
+    def found_compatible_gems(_gems)
+      return [] if _gems.nil? || _gems.is_?(Hash) || _gems.empty?
+
+      _gems.map { |_gem| { name: _gem.name, version: _gem.latest_version.version.to_s } }
     end
 
     def compatible_ruby_version(rails_version)
