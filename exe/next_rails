@@ -40,17 +40,13 @@ if options.fetch(:upgrade, false)
   url = ENV.fetch("UPGRADE_FROM_URL") { "https://roadrunner-staging-5ff1a4e7a439.herokuapp.com/api/v1/next_versions" }
   resp = NextRails::HttpClient.get(url, {current_rails_version: current_version})
   puts NextRails::UpgradeFrom.report(current_version, resp)
+
   return if resp["next_rails"].nil?
 
-  gems = if current_version == resp["current_latest_patch"]
-    NextRails::BundleReport.compatibility(rails_version: resp["next_rails"])
-    .prepend({name: "rails", version: resp["next_rails"]})
-  else
-    NextRails::BundleReport.compatibility(rails_version: resp["current_latest_patch"])
-    .prepend({name: "rails", version: resp["current_latest_patch"]})
-  end
+  rails_version = current_version == resp["current_latest_patch"] ? resp["next_rails"] : resp["current_latest_patch"]
 
-  byebug
+  gems = NextRails::BundleReport.compatibility(rails_version: rails_version)
+                                .prepend({name: "rails", version: rails_version})
+
   NextRails::UpgradeFrom.update_gemfile(gems)
-
 end
