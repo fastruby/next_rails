@@ -17,8 +17,8 @@ option_parser = OptionParser.new do |opts|
     options[:version] = true
   end
 
-  opts.on("--upgrade_from", "Rails version to check next upgrade target") do
-    options[:upgrade_from] = true
+  opts.on("--upgrade", "Rails version to check next upgrade target") do
+    options[:upgrade] = true
   end
 
   opts.on_tail("-h", "--help", "Prints this help") do
@@ -35,15 +35,22 @@ if options.fetch(:version, false)
   exit 2
 end
 
-if options.fetch(:upgrade_from, false)
+if options.fetch(:upgrade, false)
   current_version = File.read("Gemfile.lock")[/^\s*rails \(([\d.]+)\)/, 1]
   url = ENV.fetch("UPGRADE_FROM_URL") { "https://roadrunner-staging-5ff1a4e7a439.herokuapp.com/api/v1/next_versions" }
   resp = NextRails::HttpClient.get(url, {current_rails_version: current_version})
   puts NextRails::UpgradeFrom.report(current_version, resp)
   return if resp["next_rails"].nil?
 
-  gems = NextRails::BundleReport.compatibility(rails_version: resp["next_rails"])
-                                .prepend({name: "rails", version: resp["next_rails"]})
+  gems = if current_version == resp["current_latest_patch"]
+    NextRails::BundleReport.compatibility(rails_version: resp["next_rails"])
+    .prepend({name: "rails", version: resp["next_rails"]})
+  else
+    NextRails::BundleReport.compatibility(rails_version: resp["current_latest_patch"])
+    .prepend({name: "rails", version: resp["current_latest_patch"]})
+  end
 
+  byebug
   NextRails::UpgradeFrom.update_gemfile(gems)
+
 end
