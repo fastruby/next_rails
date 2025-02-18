@@ -1,5 +1,6 @@
 #!/bin/bash
 if [[ "${@}" == "--init" ]]; then
+  echo "The next --init command is deprecated. Please use the next_rails --init command instead."
   # Add next? top of Gemfile
   cat <<-STRING > Gemfile.tmp
 def next?
