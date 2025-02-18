@@ -41,6 +41,7 @@ if options.fetch(:version, false)
 end
 
 if options.fetch(:upgrade, false)
+  puts NextRails::Init.call(options[:upgrade])
   current_version = File.read("Gemfile.lock")[/^\s*rails \(([\d.]+)\)/, 1]
   url = ENV.fetch("UPGRADE_FROM_URL") { "https://roadrunner-staging-5ff1a4e7a439.herokuapp.com/api/v1/next_versions" }
   resp = NextRails::HttpClient.get(url, {current_rails_version: current_version})

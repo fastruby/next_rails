@@ -5,8 +5,12 @@ require 'fileutils'
 module NextRails
   # This class is responsible for installing the dual-boot files for your.
   class Init
-    def self.call
-      new.call
+    def self.call(opts)
+      new(opts).call
+    end
+
+    def initialize(opts)
+      @opts = opts
     end
 
     def call
@@ -64,6 +68,10 @@ end
     end
 
     def message
+      @opts ? upgrade_message : init_message
+    end
+
+    def init_message
       <<-MESSAGE
 Created Gemfile.next (a symlink to your Gemfile). Your Gemfile has been modified to support dual-booting!
 
@@ -77,6 +85,10 @@ else
   gem "rails", "5.2.8.1"
 end
       MESSAGE
+    end
+
+    def upgrade_message
+      "Created Gemfile.next (a symlink to your Gemfile). Your Gemfile has been modified to support dual-booting!"
     end
   end
 end

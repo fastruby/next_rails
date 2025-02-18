@@ -35,11 +35,11 @@ RSpec.describe NextRails::Init do
       FileUtils.touch('Gemfile.lock')
       File.write('Gemfile.next', gemfile_content)
 
-      expect(described_class.call).to eq('The next_rails --init command has already been run.')
+      expect(described_class.call(true)).to eq('The next_rails --init command has already been run.')
     end
 
     it 'does not have Gemfile files' do
-      expect(described_class.call).to eq('You must have a Gemfile and Gemfile.lock to run the next_rails --init command.')
+      expect(described_class.call(true)).to eq('You must have a Gemfile and Gemfile.lock to run the next_rails --init command.')
     end
 
     it 'creates Gemfile.next and Gemfile.next.lock' do
@@ -47,18 +47,26 @@ RSpec.describe NextRails::Init do
       FileUtils.touch('Gemfile.lock')
 
       expect do
-        described_class.call
+        described_class.call(true)
       end.to change { File.exist?('Gemfile.next') }.from(false).to(true)
          .and change { File.exist?('Gemfile.next.lock') }.from(false).to(true)
     end
 
-    it 'returns a success message' do
+    it 'returns a success message for --init command' do
       File.write('Gemfile', gemfile_content)
       FileUtils.touch('Gemfile.lock')
 
-      message = described_class.call
+      message = described_class.call(false)
       expect(message).to include('Created Gemfile.next (a symlink to your Gemfile).')
       expect(message).to include("For example, here's how to go from 5.2.8.1 to 6.0.6.1:")
+    end
+
+    it 'returns a success message for --upgrade command' do
+      File.write('Gemfile', gemfile_content)
+      FileUtils.touch('Gemfile.lock')
+
+      message = described_class.call(true)
+      expect(message).to eq('Created Gemfile.next (a symlink to your Gemfile). Your Gemfile has been modified to support dual-booting!')
     end
   end
 end
