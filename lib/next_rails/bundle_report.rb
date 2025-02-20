@@ -8,12 +8,18 @@ module NextRails
   module BundleReport
     extend self
 
-    def compatibility(rails_version: nil, ruby_version: nil, include_rails_gems: nil)
-      return puts RubyVersionCompatibility.new(options: { ruby_version: ruby_version }).generate if ruby_version
+    def ruby_compatibility(ruby_version: nil)
+      return unless ruby_version
 
+      options = { ruby_version: ruby_version }
+      puts RubyVersionCompatibility.new(options: options).generate
+    end
+
+    def rails_compatibility(rails_version: nil, include_rails_gems: nil)
       return unless rails_version
 
-      puts RailsVersionCompatibility.new(options: { rails_version: rails_version, include_rails_gems: include_rails_gems }).generate
+      options = { rails_version: rails_version, include_rails_gems: include_rails_gems }
+      puts RailsVersionCompatibility.new(options: options).generate
     end
 
     def compatible_ruby_version(rails_version)

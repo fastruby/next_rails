@@ -67,9 +67,9 @@ at_exit do
   when "outdated" then NextRails::BundleReport.outdated(options.fetch(:format, nil))
   else
     if options[:ruby_version]
-      NextRails::BundleReport.compatibility(ruby_version: options.fetch(:ruby_version, "2.3"))
+      NextRails::BundleReport.ruby_compatibility(ruby_version: options.fetch(:ruby_version, "2.3"))
     else
-      NextRails::BundleReport.compatibility(rails_version: options.fetch(:rails_version, "5.0"), include_rails_gems: options.fetch(:include_rails_gems, false))
+      NextRails::BundleReport.rails_compatibility(rails_version: options.fetch(:rails_version, "5.0"), include_rails_gems: options.fetch(:include_rails_gems, false))
     end
   end
 end
