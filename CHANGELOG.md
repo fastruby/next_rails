@@ -1,8 +1,10 @@
-# main [(unreleased)](https://github.com/fastruby/next_rails/compare/v1.4.3...main)
+# main [(unreleased)](https://github.com/fastruby/next_rails/compare/v1.4.4...main)
 
 - [BUGFIX: example](https://github.com/fastruby/next_rails/pull/<number>)
 
 * Your changes/patches go here.
+
+# v1.4.4 / 2025-02-26 [(commits)](https://github.com/fastruby/next_rails/compare/v1.4.3...v1.4.4)
 
 - [FEATURE: Update deprecation tracker to support newer Rails versions (7.1+)](https://github.com/fastruby/next_rails/pull/142)
 
