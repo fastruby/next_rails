@@ -140,7 +140,7 @@ next_rails --help # For more options and examples
 This command helps you dual-boot your application.
 
 ```bash
-next --init         # Create Gemfile.next and Gemfile.next.lock
+next_next --init    # Create Gemfile.next and Gemfile.next.lock
 vim Gemfile         # Tweak your dependencies conditionally using `next?`
 next bundle install # Install new gems
 next rails s        # Start server using Gemfile.next
@@ -168,7 +168,7 @@ Or install it yourself as:
 
 Execute:
 
-    $ next --init
+    $ next_rails --init
 
 Init will create a Gemfile.next and an initialized Gemfile.next.lock.
 The Gemfile.next.lock is initialized with the contents of your existing
