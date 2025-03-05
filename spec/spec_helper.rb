@@ -48,3 +48,12 @@ end
 def with_env(env_hash)
   stub_const("ENV", ENV.to_hash.merge!(env_hash))
 end
+
+def with_captured_stdout
+  old_stdout = $stdout
+  $stdout = StringIO.new
+  yield
+  $stdout.string
+ensure
+  $stdout = old_stdout
+end

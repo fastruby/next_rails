@@ -65,16 +65,20 @@ RSpec.describe NextRails::BundleReport do
   end
 
   describe ".rails_compatibility" do
-    it "returns nil for invalid rails version" do
-      output = NextRails::BundleReport.rails_compatibility(rails_version: nil)
-      expect(output).to eq(nil)
+    it "returns empty output invalid rails version" do
+      output = with_captured_stdout do
+        NextRails::BundleReport.rails_compatibility(rails_version: nil)
+      end
+      expect(output).to be_empty
     end
   end
 
   describe ".ruby_compatibility" do
-    it "returns nil for invalid ruby version" do
-      output = NextRails::BundleReport.ruby_compatibility(ruby_version: nil)
-      expect(output).to eq(nil)
+    it "returns empty output invalid ruby version" do
+      output = with_captured_stdout do
+        NextRails::BundleReport.ruby_compatibility(ruby_version: nil)
+      end
+      expect(output).to be_empty
     end
   end
 
