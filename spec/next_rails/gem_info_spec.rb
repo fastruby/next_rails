@@ -83,7 +83,7 @@ RSpec.describe NextRails::GemInfo do
       # Set up a mock SpecFetcher to return an empty list
       fetcher_double = double("spec_fetcher")
       allow(fetcher_double).to receive(:available_specs).and_return([[],[]])
-      allow(Gem::SpecFetcher).to receive(:new).and_return(fetcher_double)
+      allow(Gem::SpecFetcher).to receive(:fetcher).and_return(fetcher_double)
 
       gem_info = NextRails::GemInfo.new(gem)
       gem_info.find_latest_compatible

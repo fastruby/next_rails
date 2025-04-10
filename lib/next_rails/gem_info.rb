@@ -109,7 +109,7 @@ module NextRails
 
     def find_latest_compatible(rails_version: nil)
       dependency = Gem::Dependency.new(@name)
-      fetcher = Gem::SpecFetcher.new
+      fetcher = Gem::SpecFetcher.fetcher # Use fetcher instead of ::new to reduce object allocation.
 
       # list all available data for released gems
       list, errors = fetcher.available_specs(:released)

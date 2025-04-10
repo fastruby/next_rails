@@ -4,6 +4,8 @@
 
 * Your changes/patches go here.
 
+- [BUFIX: Fix compatibilities performance bug](https://github.com/fastruby/next_rails/pull/150)
+
 # v1.4.5 / 2025-03-07 [(commits)](https://github.com/fastruby/next_rails/compare/v1.4.4...v1.4.5)
 
 - [Move rails_version compatibility to its own class](https://github.com/fastruby/next_rails/pull/137)
