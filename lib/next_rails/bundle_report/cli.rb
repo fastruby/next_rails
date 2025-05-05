@@ -1,86 +1,123 @@
 # frozen_string_literal: true
+
 class NextRails::BundleReport::CLI
   def initialize(argv)
     validate_arguments(argv)
   end
 
   def validate_arguments(argv)
-    # TODO: validate the arguments
+    return unless argv.any?
+
+    valid_report_types = %w[outdated compatibility ruby_check]
+    report_type = argv.first
+
+    unless valid_report_types.include?(report_type)
+      raise ArgumentError, "Invalid report type '#{report_type}'. Valid types are: #{valid_report_types.join(', ')}."
+    end
+
+    argv.each do |arg|
+      if arg.start_with?('--rails-version') && !arg.match?(/--rails-version=+\d+(\.\d+)*$/)
+        raise ArgumentError, 'Invalid Rails version format. Example: --rails-version=5.0.7'
+      end
+
+      if arg.start_with?('--ruby-version') && !arg.match?(/--ruby-version=+\d+(\.\d+)*$/)
+        raise ArgumentError, 'Invalid Ruby version format. Example: --ruby-version=3.3'
+      end
+    end
   end
 
-  def generate
-    # Print a report on our Gemfile
-    # Why not just use `bundle outdated`? It doesn"t give us the information we care about (and it fails).
+  def run
     at_exit do
-      require "optparse"
-      require "next_rails"
+      setup_dependencies
+      options = parse_options
+      execute_report(ARGV.first, options)
+    end
+  end
 
-      options = {}
-      option_parser = OptionParser.new do |opts|
-        opts.banner = <<-EOS
-          Usage: #{$0} [report-type] [options]
+  private
 
-          report-type  There are two report types available: `outdated` and `compatibility`
+  def setup_dependencies
+    require 'optparse'
+    require 'next_rails'
+    require 'next_rails/bundle_report'
+  end
 
-          Examples:
-            #{$0} compatibility --rails-version 5.0
-            #{$0} compatibility --ruby-version 3.3
-            #{$0} outdated
-            #{$0} outdated --json
+  def parse_options
+    options = {}
+    option_parser = OptionParser.new do |opts|
+      opts.banner = <<-EOS
+        Usage: #{$0} [report-type] [options]
 
-          ruby_check To find a compatible ruby version for the target rails version
+        report-type  There are two report types available: `outdated` and `compatibility`
 
-          Examples:
-            #{$0} ruby_check --rails-version 7.0.0
+        Examples:
+          #{$0} compatibility --rails-version 5.0
+          #{$0} compatibility --ruby-version 3.3
+          #{$0} outdated
+          #{$0} outdated --json
 
-        EOS
+        ruby_check To find a compatible ruby version for the target rails version
 
-        opts.separator ""
-        opts.separator "Options:"
+        Examples:
+          #{$0} ruby_check --rails-version 7.0.0
 
-        opts.on("--rails-version [STRING]", "Rails version to check compatibility against (defaults to 5.0)") do |rails_version|
-          options[:rails_version] = rails_version
-        end
+      EOS
 
-        opts.on("--ruby-version [STRING]", "Ruby version to check compatibility against (defaults to 2.3)") do |ruby_version|
-          options[:ruby_version] = ruby_version
-        end
+      opts.separator ''
+      opts.separator 'Options:'
 
-        opts.on("--include-rails-gems", "Include Rails gems in compatibility report (defaults to false)") do
-          options[:include_rails_gems] = true
-        end
-
-        opts.on("--json", "Output JSON in outdated report (defaults to false)") do
-          options[:format] = "json"
-        end
-
-        opts.on_tail("-h", "--help", "Show this message") do
-          puts opts
-          exit
-        end
+      opts.on('--rails-version [STRING]',
+              'Rails version to check compatibility against (defaults to 5.0)') do |rails_version|
+        options[:rails_version] = rails_version
       end
 
-      begin
-        option_parser.parse!
-      rescue OptionParser::ParseError => e
-        STDERR.puts Rainbow(e.message).red
-        puts option_parser
-        exit 1
+      opts.on('--ruby-version [STRING]',
+              'Ruby version to check compatibility against (defaults to 2.3)') do |ruby_version|
+        options[:ruby_version] = ruby_version
       end
 
-      report_type = ARGV.first
+      opts.on('--include-rails-gems', 'Include Rails gems in compatibility report (defaults to false)') do
+        options[:include_rails_gems] = true
+      end
 
-      case report_type
-      when "ruby_check" then NextRails::BundleReport.compatible_ruby_version(rails_version: options.fetch(:rails_version))
-      when "outdated" then bundle_report = NextRails::BundleReport.new
-        bundle_report.(options.fetch(:format, nil))
+      opts.on('--json', 'Output JSON in outdated report (defaults to false)') do
+        options[:format] = 'json'
+      end
+
+      opts.on_tail('-h', '--help', 'Show this message') do
+        puts opts
+        exit
+      end
+    end
+
+    begin
+      option_parser.parse!
+    rescue OptionParser::ParseError => e
+      warn Rainbow(e.message).red
+      puts option_parser
+      exit 1
+    end
+
+    options
+  end
+
+  def execute_report(report_type, options)
+    case report_type
+    when 'ruby_check'
+      NextRails::BundleReport.compatible_ruby_version(rails_version: options.fetch(:rails_version))
+    when 'outdated'
+      NextRails::BundleReport.outdated(options.fetch(:format, nil))
+    when 'compatibility'
+      if options[:ruby_version]
+        NextRails::BundleReport.ruby_compatibility(ruby_version: options.fetch(:ruby_version, '2.3'))
       else
-        if options[:ruby_version]
-          NextRails::BundleReport.ruby_compatibility(ruby_version: options.fetch(:ruby_version, "2.3"))
-        else
-          NextRails::BundleReport.rails_compatibility(rails_version: options.fetch(:rails_version, "5.0"), include_rails_gems: options.fetch(:include_rails_gems, false))
-        end
+        NextRails::BundleReport.rails_compatibility(
+          rails_version: options.fetch(:rails_version, '5.0'),
+          include_rails_gems: options.fetch(:include_rails_gems, false)
+        )
       end
+    else
+      raise ArgumentError, "Invalid report type '#{report_type}'. Use --help for usage information."
     end
   end
 end

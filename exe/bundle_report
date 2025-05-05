@@ -3,4 +3,4 @@
 # Needs to happen first
 require 'bundler/setup'
 require 'next_rails'
-NextRails::BundleReport::CLI.new(ARGV).generate
+NextRails::BundleReport::CLI.new(ARGV).run
