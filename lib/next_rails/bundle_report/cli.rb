@@ -5,7 +5,7 @@ class NextRails::BundleReport::CLI
   end
 
   def validate_arguments(argv)
-    #
+    # TODO: validate the arguments
   end
 
   def generate
