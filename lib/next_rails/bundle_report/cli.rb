@@ -82,9 +82,5 @@ class NextRails::BundleReport::CLI
         end
       end
     end
-
-    # Needs to happen first
-    require "bundler/setup"
-
   end
 end
