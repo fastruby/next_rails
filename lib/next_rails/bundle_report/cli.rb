@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-require "optparse"
 class NextRails::BundleReport::CLI
   def initialize(argv)
     validate_arguments(argv)
