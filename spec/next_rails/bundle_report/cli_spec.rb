@@ -14,19 +14,24 @@ RSpec.describe NextRails::BundleReport::CLI do
       described_class.new(['outdated']).run
     end
 
+    # it 'raises if called ruby_check without --rails-version' do
+    #   expect { described_class.new(['ruby_check']) }
+    #     .to raise_error(KeyError, /key not found: :rails_version/)
+    # end
+
     it 'calls compatible_ruby_version if called with ruby_check' do
-      expect(NextRails::BundleReport).to receive(:compatible_ruby_version)
-      described_class.new(['ruby_check', '--rails-version=7.0.0']).run
+      expect(NextRails::BundleReport).to receive(:compatible_ruby_version).with(rails_version: '8.0.0')
+      described_class.new(['ruby_check', '--rails-version=8.0.0']).run
     end
 
     it 'calls rails_compatibility if called with compatibility with rails-version option' do
       expect(NextRails::BundleReport).to receive(:rails_compatibility)
-      described_class.new(['compatibility', '--rails-version=7.0.0']).run
+      described_class.new(['compatibility', '--rails-version=8.0.0']).run
     end
 
     it 'calls ruby_compatibility if called with compatibility with ruby-version option' do
       expect(NextRails::BundleReport).to receive(:ruby_compatibility)
-      described_class.new(['compatibility', '--ruby-version=3.2.0']).run
+      described_class.new(['compatibility', '--ruby-version=3.4.0']).run
     end
   end
 end
