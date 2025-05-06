@@ -1,8 +1,12 @@
 # frozen_string_literal: true
 
+require 'optparse'
+require 'next_rails'
+require 'next_rails/bundle_report'
 class NextRails::BundleReport::CLI
   def initialize(argv)
     validate_arguments(argv)
+    @argv = argv
   end
 
   def validate_arguments(argv)
@@ -27,20 +31,11 @@ class NextRails::BundleReport::CLI
   end
 
   def run
-    at_exit do
-      setup_dependencies
-      options = parse_options
-      execute_report(ARGV.first, options)
-    end
+    options = parse_options
+    execute_report(@argv.first, options)
   end
 
   private
-
-  def setup_dependencies
-    require 'optparse'
-    require 'next_rails'
-    require 'next_rails/bundle_report'
-  end
 
   def parse_options
     options = {}
@@ -48,7 +43,7 @@ class NextRails::BundleReport::CLI
       opts.banner = <<-EOS
         Usage: #{$0} [report-type] [options]
 
-        report-type  There are two report types available: `outdated` and `compatibility`
+        report-type  There are three report types available: `outdated`, `compatibility` and `ruby_check`.
 
         Examples:
           #{$0} compatibility --rails-version 5.0
