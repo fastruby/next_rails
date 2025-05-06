@@ -1,8 +1,12 @@
 require 'spec_helper'
-require 'byebug'
 
 RSpec.describe NextRails::BundleReport::CLI do
   describe '#initialize' do
+    it 'calls with called with any arguemnt' do
+      expect(NextRails::BundleReport).to receive(:rails_compatibility)
+      described_class.new([]).run
+    end
+
     it 'raises if called with invalid arguments' do
       expect { described_class.new(['invalid_report_type']) }
         .to raise_error(ArgumentError,

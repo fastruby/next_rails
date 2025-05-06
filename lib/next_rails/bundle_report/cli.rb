@@ -5,8 +5,8 @@ require 'next_rails'
 require 'next_rails/bundle_report'
 class NextRails::BundleReport::CLI
   def initialize(argv)
-    validate_arguments(argv)
     @argv = argv
+    validate_arguments(@argv)
   end
 
   def validate_arguments(argv)
@@ -102,7 +102,7 @@ class NextRails::BundleReport::CLI
       NextRails::BundleReport.compatible_ruby_version(rails_version: options.fetch(:rails_version))
     when 'outdated'
       NextRails::BundleReport.outdated(options.fetch(:format, nil))
-    when 'compatibility'
+    else
       if options[:ruby_version]
         NextRails::BundleReport.ruby_compatibility(ruby_version: options.fetch(:ruby_version, '2.3'))
       else
@@ -111,8 +111,6 @@ class NextRails::BundleReport::CLI
           include_rails_gems: options.fetch(:include_rails_gems, false)
         )
       end
-    else
-      raise ArgumentError, "Invalid report type '#{report_type}'. Use --help for usage information."
     end
   end
 end
