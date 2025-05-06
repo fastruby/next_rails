@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
-require 'optparse'
-require 'next_rails'
-require 'next_rails/bundle_report'
+require "optparse"
+require "next_rails"
+require "next_rails/bundle_report"
+
 class NextRails::BundleReport::CLI
   def initialize(argv)
+    validate_arguments(argv)
     @argv = argv
-    validate_arguments(@argv)
   end
 
   def validate_arguments(argv)
@@ -20,12 +21,12 @@ class NextRails::BundleReport::CLI
     end
 
     argv.each do |arg|
-      if arg.start_with?('--rails-version') && !arg.match?(/--rails-version=+\d+(\.\d+)*$/)
-        raise ArgumentError, 'Invalid Rails version format. Example: --rails-version=5.0.7'
+      if arg.start_with?("--rails-version") && !arg.match?(/--rails-version=+\d+(\.\d+)*$/)
+        raise ArgumentError, "Invalid Rails version format. Example: --rails-version=5.0.7"
       end
 
-      if arg.start_with?('--ruby-version') && !arg.match?(/--ruby-version=+\d+(\.\d+)*$/)
-        raise ArgumentError, 'Invalid Ruby version format. Example: --ruby-version=3.3'
+      if arg.start_with?("--ruby-version") && !arg.match?(/--ruby-version=+\d+(\.\d+)*$/)
+        raise ArgumentError, "Invalid Ruby version format. Example: --ruby-version=3.3"
       end
     end
   end
@@ -58,28 +59,28 @@ class NextRails::BundleReport::CLI
 
       EOS
 
-      opts.separator ''
-      opts.separator 'Options:'
+      opts.separator ""
+      opts.separator "Options:"
 
-      opts.on('--rails-version [STRING]',
-              'Rails version to check compatibility against (defaults to 5.0)') do |rails_version|
+      opts.on("--rails-version [STRING]",
+              "Rails version to check compatibility against (defaults to 5.0)") do |rails_version|
         options[:rails_version] = rails_version
       end
 
-      opts.on('--ruby-version [STRING]',
-              'Ruby version to check compatibility against (defaults to 2.3)') do |ruby_version|
+      opts.on("--ruby-version [STRING]",
+              "Ruby version to check compatibility against (defaults to 2.3)") do |ruby_version|
         options[:ruby_version] = ruby_version
       end
 
-      opts.on('--include-rails-gems', 'Include Rails gems in compatibility report (defaults to false)') do
+      opts.on("--include-rails-gems", "Include Rails gems in compatibility report (defaults to false)") do
         options[:include_rails_gems] = true
       end
 
-      opts.on('--json', 'Output JSON in outdated report (defaults to false)') do
-        options[:format] = 'json'
+      opts.on("--json", "Output JSON in outdated report (defaults to false)") do
+        options[:format] = "json"
       end
 
-      opts.on_tail('-h', '--help', 'Show this message') do
+      opts.on_tail("-h", "--help", "Show this message") do
         puts opts
         exit
       end
@@ -98,16 +99,16 @@ class NextRails::BundleReport::CLI
 
   def execute_report(report_type, options)
     case report_type
-    when 'ruby_check'
+    when "ruby_check"
       NextRails::BundleReport.compatible_ruby_version(rails_version: options.fetch(:rails_version))
-    when 'outdated'
+    when "outdated"
       NextRails::BundleReport.outdated(options.fetch(:format, nil))
     else
       if options[:ruby_version]
-        NextRails::BundleReport.ruby_compatibility(ruby_version: options.fetch(:ruby_version, '2.3'))
+        NextRails::BundleReport.ruby_compatibility(ruby_version: options.fetch(:ruby_version, "2.3"))
       else
         NextRails::BundleReport.rails_compatibility(
-          rails_version: options.fetch(:rails_version, '5.0'),
+          rails_version: options.fetch(:rails_version, "5.0"),
           include_rails_gems: options.fetch(:include_rails_gems, false)
         )
       end
