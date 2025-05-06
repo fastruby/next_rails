@@ -86,7 +86,7 @@ class NextRails::BundleReport::CLI
     end
 
     begin
-      option_parser.parse!
+      option_parser.parse!(@argv)
     rescue OptionParser::ParseError => e
       warn Rainbow(e.message).red
       puts option_parser
