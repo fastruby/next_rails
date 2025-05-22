@@ -3,6 +3,7 @@
 require "optparse"
 require "next_rails"
 require "next_rails/bundle_report"
+require "byebug"
 
 class NextRails::BundleReport::CLI
   def initialize(argv)
@@ -21,11 +22,11 @@ class NextRails::BundleReport::CLI
     end
 
     argv.each do |arg|
-      if arg.start_with?("--rails-version") && !arg.match?(/--rails-version=+\d+(\.\d+)*$/)
+      if arg.start_with?("--rails-version") && !/--rails-version=+\d+(\.\d+)*$/.match(arg)
         raise ArgumentError, "Invalid Rails version format. Example: --rails-version=5.0.7"
       end
 
-      if arg.start_with?("--ruby-version") && !arg.match?(/--ruby-version=+\d+(\.\d+)*$/)
+      if arg.start_with?("--ruby-version") && !/--ruby-version=+\d+(\.\d+)*$/.match(arg)
         raise ArgumentError, "Invalid Ruby version format. Example: --ruby-version=3.3"
       end
     end
