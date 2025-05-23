@@ -330,5 +330,15 @@ RSpec.describe DeprecationTracker do
         end
       end
     end
+
+    describe "bug when warning uses unexpected keyword arguments" do
+      it "does not raise an error with unknown keyword args like :deprecation, :span, :stack" do
+        DeprecationTracker::KernelWarnTracker.callbacks << -> (message) { message.to_s }
+
+        expect {
+          warn("Unknown deprecation warning", deprecation: true, span: 1.2, stack: ["line1", "line2"])
+        }.to not_raise_error.and output.to_stderr
+      end
+    end
   end
 end
