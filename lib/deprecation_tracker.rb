@@ -23,12 +23,17 @@ class DeprecationTracker
         messages.each { |message| callback.(message) }
       end
 
-      if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("2.5.0")
-        super(*messages)
-      elsif Gem::Version.new(RUBY_VERSION) < Gem::Version.new("3.0")
-        super(*messages, uplevel: nil)
-      else
-        super(*messages)
+      # Build keyword args supported by this Ruby version
+      keyword_args = {}
+      keyword_args[:uplevel] = uplevel if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.5.0")
+      keyword_args[:category] = category if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.2.0")
+
+      begin
+        # Combine known safe keywords with any extras
+        super(*messages, **keyword_args, **kwargs)
+      rescue ArgumentError
+        # Fallback: only pass known safe keywords
+        super(*messages, **keyword_args)
       end
     end
   end
