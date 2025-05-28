@@ -28,11 +28,7 @@ class DeprecationTracker
       elsif Gem::Version.new(RUBY_VERSION) < Gem::Version.new("3.0")
         super(*messages, uplevel: nil)
       else
-        begin
-          super(*messages, uplevel: uplevel, category: category, **kwargs)
-        rescue ArgumentError => e
-          super(*messages, uplevel: uplevel, category: category)
-        end
+        super(*messages)
       end
     end
   end
