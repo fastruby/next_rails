@@ -6,10 +6,6 @@
 
 * Your changes/patches go here.
 
-# v1.4.7 / 2025-05-20 [(commits)](https://github.com/fastruby/next_rails/compare/v1.4.6...v1.4.7)
-
-- [BUFIX: deprecation_tracker breaking with unknown keywords](https://github.com/fastruby/next_rails/pull/156)
-
 # v1.4.6 / 2025-04-15 [(commits)](https://github.com/fastruby/next_rails/compare/v1.4.5...v1.4.6)
 
 - [BUFIX: Fix compatibilities performance bug](https://github.com/fastruby/next_rails/pull/150)
