@@ -20,22 +20,20 @@ class DeprecationTracker
 
     def warn(*messages, uplevel: nil, category: nil, **kwargs)
       KernelWarnTracker.callbacks.each do |callback|
-        messages.each { |message| callback.(message) }
+        messages.each { |message| callback.call(message) }
       end
 
-      # Build keyword args supported by this Ruby version
-      keyword_args = {}
-      keyword_args[:uplevel] = uplevel if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.5.0")
-      keyword_args[:category] = category if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.2.0")
+      ruby_version = Gem::Version.new(RUBY_VERSION)
 
-      if keyword_args.empty?
-        super(*messages)
+      if ruby_version >= Gem::Version.new("3.2.0")
+        # Kernel#warn supports uplevel, category
+        super(*messages, uplevel: uplevel, category: category)
+      elsif ruby_version >= Gem::Version.new("2.5.0")
+        # Kernel#warn supports only uplevel
+        super(*messages, uplevel: uplevel)
       else
-        begin
-          super(*messages, **keyword_args, **kwargs)
-        rescue ArgumentError
-          super(*messages, **keyword_args)
-        end
+        # No keyword args supported
+        super(*messages)
       end
     end
   end
