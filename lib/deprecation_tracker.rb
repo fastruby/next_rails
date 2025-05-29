@@ -28,12 +28,14 @@ class DeprecationTracker
       keyword_args[:uplevel] = uplevel if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.5.0")
       keyword_args[:category] = category if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("3.2.0")
 
-      begin
-        # Combine known safe keywords with any extras
-        super(*messages, **keyword_args, **kwargs)
-      rescue ArgumentError
-        # Fallback: only pass known safe keywords
-        super(*messages, **keyword_args)
+      if keyword_args.empty?
+        super(*messages)
+      else
+        begin
+          super(*messages, **keyword_args, **kwargs)
+        rescue ArgumentError
+          super(*messages, **keyword_args)
+        end
       end
     end
   end
