@@ -3,6 +3,7 @@
 - [BUGFIX: example](https://github.com/fastruby/next_rails/pull/<number>)
 - [CHORE: Create an entry point for the BundleReport command](https://github.com/fastruby/next_rails/pull/154)
 - [CHORE: Bring back support of Ruby 2.3, 2.4 and 2.5](https://github.com/fastruby/next_rails/pull/155)
+- [BUFIX: deprecation_tracker breaking with unknown keywords](https://github.com/fastruby/next_rails/pull/158)
 
 * Your changes/patches go here.
 
