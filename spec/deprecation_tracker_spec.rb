@@ -294,6 +294,8 @@ RSpec.describe DeprecationTracker do
   end
 
   describe DeprecationTracker::KernelWarnTracker do
+    before { DeprecationTracker::KernelWarnTracker.callbacks.clear }
+
     it "captures Kernel#warn" do
       warn_messages = []
       DeprecationTracker::KernelWarnTracker.callbacks << -> (message) { warn_messages << message }
@@ -330,5 +332,34 @@ RSpec.describe DeprecationTracker do
         end
       end
     end
+
+    describe "bug when warning uses unexpected keyword arguments" do
+      it "does not raise an error with unknown keyword args like :deprecation, :span, :stack" do
+        DeprecationTracker::KernelWarnTracker.callbacks << -> (message) { message.to_s }
+
+        expect {
+          warn("Unknown deprecation warning", deprecation: true, span: 1.2, stack: ["line1", "line2"])
+        }.to not_raise_error.and output.to_stderr
+      end
+    end
+
+    it "handles known and unknown keyword arguments without raising" do
+      warnings = []
+      DeprecationTracker::KernelWarnTracker.callbacks << ->(msg) { warnings << msg }
+
+      expect {
+        warn(
+          "This is a test warning",
+          uplevel: 1,
+          category: :deprecated,
+          deprecation: true,
+          span: 1.2,
+          stack: ["line"]
+        )
+      }.to not_raise_error
+
+      expect(warnings).to include("This is a test warning")
+    end
+
   end
 end

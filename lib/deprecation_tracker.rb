@@ -18,17 +18,22 @@ class DeprecationTracker
       @callbacks ||= []
     end
 
-    def warn(*messages, uplevel: nil, category: nil)
+    def warn(*messages, uplevel: nil, category: nil, **kwargs)
       KernelWarnTracker.callbacks.each do |callback|
-        messages.each { |message| callback.(message) }
+        messages.each { |message| callback.call(message) }
       end
 
-      if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("2.5.0")
-        super(*messages)
-      elsif Gem::Version.new(RUBY_VERSION) < Gem::Version.new("3.0")
-        super(*messages, uplevel: nil)
+      ruby_version = Gem::Version.new(RUBY_VERSION)
+
+      if ruby_version >= Gem::Version.new("3.2.0")
+        # Kernel#warn supports uplevel, category
+        super(*messages, uplevel: uplevel, category: category)
+      elsif ruby_version >= Gem::Version.new("2.5.0")
+        # Kernel#warn supports only uplevel
+        super(*messages, uplevel: uplevel)
       else
-        super
+        # No keyword args supported
+        super(*messages)
       end
     end
   end
@@ -43,7 +48,7 @@ class DeprecationTracker
           @@deprecation_tracker.bucket = test_file_name.gsub(Rails.root.to_s, ".")
           super
         end
-      
+
         def after_teardown
           super
           @@deprecation_tracker.bucket = nil
