@@ -102,6 +102,18 @@ if ENV["DEPRECATION_TRACKER"]
 end
 ```
 
+If using cucumber, create new file `features/support/deprecation_tracker.rb` with following content:
+
+```ruby
+if ENV["DEPRECATION_TRACKER"]
+  DeprecationTracker.track_cucumber(
+    shitlist_path: "features/support/deprecation_warning.shitlist.json",
+    mode: ENV["DEPRECATION_TRACKER"],
+    transform_message: -> (message) { message.gsub("#{Rails.root}/", "") }
+  )
+end
+```
+
 > Keep in mind this is currently not compatible with the `minitest/parallel_fork` gem!
 
 Once you have that, you can start using deprecation tracking in your tests:

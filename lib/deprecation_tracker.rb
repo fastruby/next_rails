@@ -116,6 +116,25 @@ class DeprecationTracker
     end
   end
 
+  def self.track_cucumber(opts = {})
+    tracker = init_tracker(opts)
+
+    Around do |scenario, block|
+      feature_file = scenario.location.file
+      tracker.bucket = feature_file.gsub(Rails.root.to_s, ".")
+
+      begin
+        block.call
+      ensure
+        tracker.bucket = nil
+      end
+    end
+
+    at_exit do
+      tracker.after_run
+    end
+  end
+
   def self.track_minitest(opts = {})
     tracker = init_tracker(opts)
 
