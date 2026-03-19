@@ -1,11 +1,14 @@
-# main [(unreleased)](https://github.com/fastruby/next_rails/compare/v1.4.6...main)
+# main [(unreleased)](https://github.com/fastruby/next_rails/compare/v1.4.7...main)
 
 - [BUGFIX: example](https://github.com/fastruby/next_rails/pull/<number>)
+
+* Your changes/patches go here.
+
+# v1.4.7 / 2026-03-19 [(commits)](https://github.com/fastruby/next_rails/compare/v1.4.6...v1.4.7)
+
 - [CHORE: Create an entry point for the BundleReport command](https://github.com/fastruby/next_rails/pull/154)
 - [CHORE: Bring back support of Ruby 2.3, 2.4 and 2.5](https://github.com/fastruby/next_rails/pull/155)
 - [BUGFIX: deprecation_tracker breaking with unknown keywords](https://github.com/fastruby/next_rails/pull/158)
-
-* Your changes/patches go here.
 
 # v1.4.6 / 2025-04-15 [(commits)](https://github.com/fastruby/next_rails/compare/v1.4.5...v1.4.6)
 
