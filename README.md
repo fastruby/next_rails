@@ -1,83 +1,108 @@
 # Next Rails
 
 [![Continuous Integration](https://github.com/fastruby/next_rails/actions/workflows/main.yml/badge.svg)](https://github.com/fastruby/next_rails/actions/workflows/main.yml)
+[![Gem Version](https://badge.fury.io/rb/next_rails.svg)](https://rubygems.org/gems/next_rails)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.txt)
 
-This is a toolkit to upgrade your next Rails application. It will help you
-set up dual booting, track deprecation warnings, and get a report on outdated
-dependencies for any Rails application.
+A toolkit to upgrade your next Rails application. It helps you set up **dual booting**, **track deprecation warnings**, and get a **compatibility report** on outdated dependencies for any Rails application. [Learn more](https://www.fastruby.io/blog/next-rails-gem.html).
 
-This project is a fork of [`ten_years_rails`](https://github.com/clio/ten_years_rails)
+## Features
 
-## History
+- **Dual Boot** — Run your app against two sets of dependencies (e.g. Rails 7.1 and Rails 7.2) side by side
+- **Deprecation Tracking** — Capture and compare deprecation warnings across test runs (RSpec & Minitest)
+- **Bundle Report** — Check gem compatibility with a target Rails or Ruby version
+- **Ruby Check** — Find the minimum Ruby version compatible with a target Rails version
 
-This gem started as a companion to the "[Ten Years of Rails Upgrades](https://www.youtube.com/watch?v=6aCfc0DkSFo)"
-conference talk by Jordan Raine.
+## Installation
 
-> You'll find various utilities that we use at Clio to help us prepare for and
-> complete Rails upgrades.
+Add this line to your application's Gemfile:
 
-> These scripts are still early days and may not work in every environment or app.
+> **Note:** If you add this gem to a group, make sure it is the `test` env group.
 
-> I wouldn't recommend adding this to your Gemfile long-term. Rather, try out
-> the scripts and use them as a point of reference. Feel free to tweak them to
-> better fit your environment.
+```ruby
+gem 'next_rails'
+```
 
-## Usage
+Then run:
 
-### `bundle_report`
+```bash
+bundle install
+```
 
-Learn about your Gemfile and see what needs updating.
+Or install it directly:
+
+```bash
+gem install next_rails
+```
+
+## Dual Boot
+
+We recommend upgrading **one minor version at a time** (e.g. 7.1 → 7.2, not 6.1 → 7.0). This keeps changes small and manageable.
+
+### Setup
+
+```bash
+# Initialize dual boot (creates Gemfile.next and Gemfile.next.lock)
+next_rails --init
+
+# Edit your Gemfile to conditionally set gem versions using `next?`
+vim Gemfile
+
+# Install dependencies for the next version
+next bundle install
+
+# Start your server using the next Gemfile
+next rails s
+```
+
+### Conditional code with `NextRails.next?`
+
+When your Gemfile targets two versions, you may need to branch application code as well:
+
+```ruby
+if NextRails.next?
+  # Do things "the Rails 7.2 way"
+else
+  # Do things "the Rails 7.1 way"
+end
+```
+
+`NextRails.next?` checks your environment (e.g. `ENV['BUNDLE_GEMFILE']`) to determine which dependency set is active. This is useful for injecting [Ruby or Rails shims](https://www.fastruby.io/blog/rails/upgrades/rails-upgrade-shims.html).
+
+## Bundle Report
+
+Inspect your Gemfile and check compatibility with a target Rails or Ruby version.
 
 ```bash
 # Show all out-of-date gems
 bundle_report outdated
 
-# Show five oldest, out-of-date gems
-bundle_report outdated | head -n 5
-
-# Show all out-of-date gems in machine readable JSON format
+# Show all out-of-date gems in JSON format
 bundle_report outdated --json
 
-# Show gems that don't work with Rails 5.2.0
-bundle_report compatibility --rails-version=5.2.0
+# Show gems incompatible with Rails 7.2
+bundle_report compatibility --rails-version=7.2
 
-# Show gems that don't work with Ruby 3.0
-bundle_report compatibility --ruby-version=3.0
+# Show gems incompatible with Ruby 3.3
+bundle_report compatibility --ruby-version=3.3
 
-# Find minimum compatible ruby version with Rails 7.0.0
-bundle_report ruby_check --rails-version=7.0.0
+# Find minimum Ruby version compatible with Rails 7.2
+bundle_report ruby_check --rails-version=7.2
 
-# Show the usual help message
+# Help
 bundle_report --help
 ```
 
-### Application usage
+## Deprecation Tracking
 
-Every now and then it will be necessary to add code like this to your
-application:
+Track deprecation warnings in your test suite so you can monitor and fix them incrementally.
 
-```ruby
-if NextRails.next?
-  # Do things "the Rails 7 way"
-else
-  # Do things "the Rails 6.1 way"
-end
-```
+### RSpec
 
-The `NextRails.next?` method will use your environment
-(e.g. `ENV['BUNDLE_GEMFILE]`) to determine whether your application is
-running with the next set of dependencies or the current set of dependencies.
-
-This might come in handy if you need to inject
-[Ruby or Rails shims](https://www.fastruby.io/blog/rails/upgrades/rails-upgrade-shims.html).
-
-### Deprecation tracking
-
-If you're using RSpec, add this snippet to `rails_helper.rb` or `spec_helper.rb` (whichever loads Rails).
+Add to `rails_helper.rb` or `spec_helper.rb`:
 
 ```ruby
 RSpec.configure do |config|
-  # Tracker deprecation messages in each file
   if ENV["DEPRECATION_TRACKER"]
     DeprecationTracker.track_rspec(
       config,
@@ -89,10 +114,11 @@ RSpec.configure do |config|
 end
 ```
 
-If using minitest, add this somewhere close to the top of your `test_helper.rb`:
+### Minitest
+
+Add near the top of `test_helper.rb`:
 
 ```ruby
-# Tracker deprecation messages in each file
 if ENV["DEPRECATION_TRACKER"]
   DeprecationTracker.track_minitest(
     shitlist_path: "test/support/deprecation_warning.shitlist.json",
@@ -102,105 +128,68 @@ if ENV["DEPRECATION_TRACKER"]
 end
 ```
 
-> Keep in mind this is currently not compatible with the `minitest/parallel_fork` gem!
+> **Note:** This is currently not compatible with the `minitest/parallel_fork` gem.
 
-Once you have that, you can start using deprecation tracking in your tests:
+### Running deprecation tracking
 
 ```bash
-# Run your tests and save the deprecations to the shitlist
+# Save current deprecations to the shitlist
 DEPRECATION_TRACKER=save rspec
-# Run your tests and raise an error when the deprecations change
+
+# Fail if deprecations have changed since the last save
 DEPRECATION_TRACKER=compare rspec
 ```
 
-#### `deprecations` command
+### `deprecations` command
 
-Once you have stored your deprecations, you can use `deprecations` to display common warnings, run specs, or update the shitlist file.
+View, filter, and manage stored deprecation warnings:
 
 ```bash
 deprecations info
 deprecations info --pattern "ActiveRecord::Base"
 deprecations run
-deprecations --help # For more options and examples
+deprecations --help
 ```
 
-Right now, the path to the shitlist is hardcoded so make sure you store yours at `spec/support/deprecation_warning.shitlist.json`.
-
-#### `next_rails` command
-
-You can use `next_rails` to fetch the version of the gem installed.
+## CLI Reference
 
 ```bash
-next_rails --version
-next_rails --help # For more options and examples
+next_rails --init      # Set up dual boot
+next_rails --version   # Show gem version
+next_rails --help      # Show help
 ```
-
-### Dual-boot Rails next
-
-This command helps you dual-boot your application.
-
-```bash
-next_rails --init    # Create Gemfile.next and Gemfile.next.lock
-vim Gemfile         # Tweak your dependencies conditionally using `next?`
-next bundle install # Install new gems
-next rails s        # Start server using Gemfile.next
-```
-
-## Installation
-
-Add this line to your application's Gemfile
-
-> NOTE: If you add this gem to a group, make sure it is the test env group
-
-```ruby
-gem 'next_rails'
-```
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install next_rails
-
-## Setup
-
-Execute:
-
-    $ next_rails --init
-
-Init will create a Gemfile.next and an initialized Gemfile.next.lock.
-The Gemfile.next.lock is initialized with the contents of your existing
-Gemfile.lock lock file. We initialize the Gemfile.next.lock to prevent
-major version jumps when running the next version of Rails.
 
 ## Contributing
 
-Have a fix for a problem you've been running into or an idea for a new feature you think would be useful? Want to see how you can support `next_rails`?
-
-Take a look at the [Contributing document](CONTRIBUTING.md) for instructions to set up the repo on your machine!
+Bug reports and pull requests are welcome! See the [Contributing guide](CONTRIBUTING.md) for setup instructions and guidelines.
 
 ## Releases
 
-`next_rails` adheres to [semver](https://semver.org). So given a version number MAJOR.MINOR.PATCH, we will increment the:
+`next_rails` follows [Semantic Versioning](https://semver.org). Given a version number `MAJOR.MINOR.PATCH`, we increment the:
 
-1. MAJOR version when you make incompatible API changes,
-2. MINOR version when you add functionality in a backwards compatible manner, and
-3. PATCH version when you make backwards compatible bug fixes.
+- **MAJOR** version for incompatible API changes
+- **MINOR** version for backwards-compatible new functionality
+- **PATCH** version for backwards-compatible bug fixes
 
-Here are the steps to release a new version:
+### Steps to release a new version
 
-1. Update the `version.rb` file with the proper version number
-2. Update `CHANGELOG.md` to have the right headers
-3. Commit your changes to a `release/v-1-1-0` branch
-4. Push your changes and submit a pull request
+1. Update the version number in `lib/next_rails/version.rb`
+2. Update `CHANGELOG.md` with the appropriate headers and entries
+3. Commit your changes to a `release/v1.x.x` branch
+4. Push your changes and submit a pull request `Release v1.x.x`
 5. Merge your pull request to the `main` branch
-6. Git tag the latest version of the `main` branch (`git tag v1.1.0`)
-7. Push tags to GitHub (`git push --tags`)
-8. Build the gem (`gem build next_rails.gemspec`)
-9. Push the .gem package to Rubygems.org (`gem push next_rails-1.1.0.gem`)
-10. You are all done!
+6. Tag the latest version on `main`: `git tag v1.x.x`
+7. Push the tag to GitHub: `git push --tags`
+8. Build the gem: `gem build next_rails.gemspec`
+9. Push to RubyGems: `gem push next_rails-1.x.x.gem`
+
+## Maintainers
+
+Maintained by [OmbuLabs / FastRuby.io](https://www.fastruby.io).
+
+## History
+
+This gem started as a fork of [`ten_years_rails`](https://github.com/clio/ten_years_rails), a companion to the "[Ten Years of Rails Upgrades](https://www.youtube.com/watch?v=6aCfc0DkSFo)" conference talk by Jordan Raine.
 
 ## License
 
