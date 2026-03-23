@@ -4,6 +4,10 @@
 
 * Your changes/patches go here.
 
+# v1.4.8 / 2026-03-23 [(commits)](https://github.com/fastruby/next_rails/compare/v1.4.7...v1.4.8)
+
+- [BUGFIX: Do not require "byebug" in any of the library code](https://github.com/fastruby/next_rails/pull/171)
+
 # v1.4.7 / 2026-03-19 [(commits)](https://github.com/fastruby/next_rails/compare/v1.4.6...v1.4.7)
 
 - [CHORE: Create an entry point for the BundleReport command](https://github.com/fastruby/next_rails/pull/154)

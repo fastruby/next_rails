@@ -3,7 +3,6 @@
 require "optparse"
 require "next_rails"
 require "next_rails/bundle_report"
-require "byebug"
 
 class NextRails::BundleReport::CLI
   def initialize(argv)
