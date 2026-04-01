@@ -2,6 +2,8 @@
 
 - [BUGFIX: example](https://github.com/fastruby/next_rails/pull/<number>)
 
+- [FEATURE: Add `NextRails.current?` as the inverse of `NextRails.next?`](https://github.com/fastruby/next_rails/pull/174)
+
 * Your changes/patches go here.
 
 # v1.4.8 / 2026-03-23 [(commits)](https://github.com/fastruby/next_rails/compare/v1.4.7...v1.4.8)
