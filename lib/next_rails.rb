@@ -23,6 +23,14 @@ module NextRails
     @@next_bundle_gemfile = File.exist?(ENV["BUNDLE_GEMFILE"]) && File.basename(ENV["BUNDLE_GEMFILE"]) == "Gemfile.next"
   end
 
+  # This method is the inverse of `NextRails.next?`. It returns true when your
+  # application is running with the current set of dependencies.
+  #
+  # @return [Boolean]
+  def self.current?
+    !next?
+  end
+
   # This method will reset the @@next_bundle_gemfile variable. Then next time
   # you call `NextRails.next?` it will check the environment once again.
   def self.reset_next_bundle_gemfile

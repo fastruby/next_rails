@@ -51,4 +51,37 @@ RSpec.describe NextRails do
     end
   end
 
+  describe "NextRails.current?" do
+    context "when BUNDLE_GEMFILE is not set" do
+      it "returns true" do
+        NextRails.reset_next_bundle_gemfile
+        expect(NextRails.current?).to be_truthy
+      end
+    end
+
+    context "when BUNDLE_GEMFILE is set" do
+      context "when it is set to Gemfile.next" do
+        it "returns false" do
+          FileUtils.touch("Gemfile.next")
+          NextRails.reset_next_bundle_gemfile
+
+          with_env("BUNDLE_GEMFILE" => "Gemfile.next")
+          expect(NextRails.current?).to be_falsey
+        end
+      end
+
+      context "when it is set to something else" do
+        it "returns true" do
+          FileUtils.touch("Gemfile4")
+          NextRails.reset_next_bundle_gemfile
+
+          with_env("BUNDLE_GEMFILE" => "Gemfile4")
+          expect(NextRails.current?).to be_truthy
+
+          FileUtils.rm("Gemfile4")
+        end
+      end
+    end
+  end
+
 end
