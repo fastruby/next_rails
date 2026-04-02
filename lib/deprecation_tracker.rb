@@ -188,7 +188,7 @@ class DeprecationTracker
       end
     end
 
-    if changed_buckets.length > 0
+    if changed_buckets.any?
       message = <<-MESSAGE
         ⚠️  Deprecation warnings have changed!
 
