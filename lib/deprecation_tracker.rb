@@ -1,6 +1,5 @@
 require "rainbow"
 require "json"
-require "shellwords"
 
 # A shitlist for deprecation warnings during test runs. It has two modes: "save" and "compare"
 #
@@ -213,7 +212,7 @@ class DeprecationTracker
 
   def diff
     temp_file = create_temp_file
-    `git diff --no-index #{Shellwords.shellescape(shitlist_path)} #{Shellwords.shellescape(temp_file.path)}`
+    `git diff --no-index #{shitlist_path} #{temp_file.path}`
   ensure
     temp_file.delete
   end
