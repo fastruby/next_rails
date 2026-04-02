@@ -74,10 +74,10 @@ class DeprecationTracker
     end
   end
 
-  DEFAULT_SHITLIST_PATH = "spec/support/deprecation_warning.shitlist.json"
+  DEFAULT_PATH = "spec/support/deprecation_warning.shitlist.json"
 
   def self.init_tracker(opts = {})
-    shitlist_path = opts[:shitlist_path] || DEFAULT_SHITLIST_PATH
+    shitlist_path = opts[:shitlist_path] || DEFAULT_PATH
     mode = opts[:mode] || ENV["DEPRECATION_TRACKER"] || :save
     transform_message = opts[:transform_message]
     node_index = opts[:node_index]
