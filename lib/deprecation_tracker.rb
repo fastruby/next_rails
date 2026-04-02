@@ -242,14 +242,16 @@ class DeprecationTracker
 
   # Normalize deprecation messages to reduce noise from file output and test files to be tracked with separate test runs
   def normalized_deprecation_messages
-    normalized = read_json(target_path).merge(deprecation_messages).each_with_object({}) do |(bucket, messages), hash|
-      hash[bucket] = messages.sort
-    end
+    @normalized_deprecation_messages ||= begin
+      normalized = read_json(target_path).merge(deprecation_messages).each_with_object({}) do |(bucket, messages), hash|
+        hash[bucket] = messages.sort
+      end
 
-    # not using `to_h` here to support older ruby versions
-    {}.tap do |h|
-      normalized.reject {|_key, value| value.empty? }.sort_by {|key, _value| key }.each do |k ,v|
-        h[k] = v
+      # not using `to_h` here to support older ruby versions
+      {}.tap do |h|
+        normalized.reject {|_key, value| value.empty? }.sort_by {|key, _value| key }.each do |k ,v|
+          h[k] = v
+        end
       end
     end
   end
