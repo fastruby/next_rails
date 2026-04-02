@@ -55,7 +55,7 @@ next bundle install
 next rails s
 ```
 
-### Conditional code with `NextRails.next?`
+### Conditional code with `NextRails.next?` and `NextRails.current?`
 
 When your Gemfile targets two versions, you may need to branch application code as well:
 
@@ -67,7 +67,17 @@ else
 end
 ```
 
-`NextRails.next?` checks your environment (e.g. `ENV['BUNDLE_GEMFILE']`) to determine which dependency set is active. This is useful for injecting [Ruby or Rails shims](https://www.fastruby.io/blog/rails/upgrades/rails-upgrade-shims.html).
+Or use `NextRails.current?` for the inverse check:
+
+```ruby
+if NextRails.current?
+  # Do things "the Rails 7.1 way"
+else
+  # Do things "the Rails 7.2 way"
+end
+```
+
+Both methods check your environment (e.g. `ENV['BUNDLE_GEMFILE']`) to determine which dependency set is active. This is useful for injecting [Ruby or Rails shims](https://www.fastruby.io/blog/rails/upgrades/rails-upgrade-shims.html).
 
 ## Bundle Report
 
