@@ -211,14 +211,14 @@ class DeprecationTracker
   end
 
   def diff
-    new_shitlist = create_temp_shitlist
+    new_shitlist = create_temp_file
     `git diff --no-index #{shitlist_path} #{new_shitlist.path}`
   ensure
     new_shitlist.delete
   end
 
   def save
-    new_shitlist = create_temp_shitlist
+    new_shitlist = create_temp_file
     create_if_path_does_not_exist(target_path)
     FileUtils.cp(new_shitlist.path, target_path)
   ensure
@@ -232,7 +232,7 @@ class DeprecationTracker
     end
   end
 
-  def create_temp_shitlist
+  def create_temp_file
     temp_file = Tempfile.new("temp-deprecation-tracker-shitlist")
     temp_file.write(JSON.pretty_generate(normalized_deprecation_messages))
     temp_file.flush
