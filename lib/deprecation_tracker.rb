@@ -211,18 +211,18 @@ class DeprecationTracker
   end
 
   def diff
-    new_shitlist = create_temp_file
-    `git diff --no-index #{shitlist_path} #{new_shitlist.path}`
+    temp_file = create_temp_file
+    `git diff --no-index #{shitlist_path} #{temp_file.path}`
   ensure
-    new_shitlist.delete
+    temp_file.delete
   end
 
   def save
-    new_shitlist = create_temp_file
+    temp_file = create_temp_file
     create_if_path_does_not_exist(target_path)
-    FileUtils.cp(new_shitlist.path, target_path)
+    FileUtils.cp(temp_file.path, target_path)
   ensure
-    new_shitlist.delete if new_shitlist
+    temp_file.delete if temp_file
   end
 
   def create_if_path_does_not_exist(path)
