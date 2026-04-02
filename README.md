@@ -18,7 +18,8 @@ A toolkit to upgrade your next Rails application. It helps you set up **dual boo
 Add this line to your application's Gemfile:
 
 > [!WARNING]
-> We recommend adding `next_rails` in the root of your Gemfile, not inside a group. This ensures `NextRails.next?` and `NextRails.current?` are available everywhere in your codebase.
+> We recommend adding `next_rails` in the root of your Gemfile, not inside a group.
+> This ensures `NextRails.next?` and `NextRails.current?` are available everywhere in your codebase.
 
 ```ruby
 gem 'next_rails'
@@ -28,12 +29,6 @@ Then run:
 
 ```bash
 bundle install
-```
-
-Or install it directly:
-
-```bash
-gem install next_rails
 ```
 
 ## Dual Boot
@@ -56,7 +51,7 @@ next bundle install
 next rails s
 ```
 
-### Conditional code with `NextRails.next?` and `NextRails.current?`
+### Conditional code
 
 When your Gemfile targets two versions, you may need to branch application code as well:
 
