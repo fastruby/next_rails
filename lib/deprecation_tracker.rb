@@ -171,7 +171,7 @@ class DeprecationTracker
   end
 
   def compare
-    shitlist = read_stored_deprecations
+    stored = read_stored_deprecations
 
     changed_buckets = []
     buckets_to_check = if parallel?
@@ -182,7 +182,7 @@ class DeprecationTracker
     end
 
     buckets_to_check.each do |bucket, messages|
-      if shitlist[bucket] != messages
+      if stored[bucket] != messages
         changed_buckets << bucket
       end
     end
