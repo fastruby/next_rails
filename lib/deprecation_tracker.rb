@@ -171,7 +171,7 @@ class DeprecationTracker
   end
 
   def compare
-    shitlist = read_shitlist
+    shitlist = read_json
 
     changed_buckets = []
     buckets_to_check = if parallel?
@@ -242,7 +242,7 @@ class DeprecationTracker
 
   # Normalize deprecation messages to reduce noise from file output and test files to be tracked with separate test runs
   def normalized_deprecation_messages
-    normalized = read_shitlist(target_path).merge(deprecation_messages).each_with_object({}) do |(bucket, messages), hash|
+    normalized = read_json(target_path).merge(deprecation_messages).each_with_object({}) do |(bucket, messages), hash|
       hash[bucket] = messages.sort
     end
 
@@ -254,7 +254,7 @@ class DeprecationTracker
     end
   end
 
-  def read_shitlist(path = shitlist_path)
+  def read_json(path = shitlist_path)
     return {} unless File.exist?(path)
     JSON.parse(File.read(path))
   rescue JSON::ParserError => e
