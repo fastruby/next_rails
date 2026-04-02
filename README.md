@@ -17,7 +17,8 @@ A toolkit to upgrade your next Rails application. It helps you set up **dual boo
 
 Add this line to your application's Gemfile:
 
-> **Note:** If you add this gem to a group, make sure it is the `test` env group.
+> [!WARNING]
+> We recommend adding `next_rails` in the root of your Gemfile, not inside a group. This ensures `NextRails.next?` and `NextRails.current?` are available everywhere in your codebase.
 
 ```ruby
 gem 'next_rails'
