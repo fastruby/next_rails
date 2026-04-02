@@ -134,7 +134,8 @@ if ENV["DEPRECATION_TRACKER"]
 end
 ```
 
-> **Note:** This is currently not compatible with the `minitest/parallel_fork` gem.
+> [!NOTE]
+> This is currently not compatible with the `minitest/parallel_fork` gem.
 
 ### Running deprecation tracking
 
@@ -160,9 +161,9 @@ deprecations --help
 ## CLI Reference
 
 ```bash
-next_rails --init      # Set up dual boot
-next_rails --version   # Show gem version
-next_rails --help      # Show help
+bundle exec next_rails --init    # Set up dual boot
+bundle exec next_rails --version # Show gem version
+bundle exec next_rails --help    # Show help
 ```
 
 ## Contributing
