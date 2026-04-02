@@ -74,21 +74,23 @@ RSpec.describe DeprecationTracker do
 
     it "works with file paths that contain spaces" do
       dir_with_spaces = "/tmp/path with spaces"
-      FileUtils.mkdir_p(dir_with_spaces)
-      path = "#{dir_with_spaces}/shitlist.json"
+      begin
+        FileUtils.mkdir_p(dir_with_spaces)
+        path = "#{dir_with_spaces}/shitlist.json"
 
-      setup_tracker = DeprecationTracker.new(path)
-      setup_tracker.bucket = "bucket 1"
-      setup_tracker.add("a")
-      setup_tracker.save
+        setup_tracker = DeprecationTracker.new(path)
+        setup_tracker.bucket = "bucket 1"
+        setup_tracker.add("a")
+        setup_tracker.save
 
-      subject = DeprecationTracker.new(path)
-      subject.bucket = "bucket 1"
-      subject.add("b")
+        subject = DeprecationTracker.new(path)
+        subject.bucket = "bucket 1"
+        subject.add("b")
 
-      expect { subject.compare }.to raise_error(DeprecationTracker::UnexpectedDeprecations, /diff/)
-    ensure
-      FileUtils.rm_rf(dir_with_spaces)
+        expect { subject.compare }.to raise_error(DeprecationTracker::UnexpectedDeprecations, /diff/)
+      ensure
+        FileUtils.rm_rf(dir_with_spaces)
+      end
     end
 
     it "raises an error when recorded messages are different for a given bucket" do
