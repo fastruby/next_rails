@@ -171,7 +171,7 @@ class DeprecationTracker
   end
 
   def compare
-    stored = read_stored_deprecations
+    stored = read_stored_deprecations(shitlist_path)
 
     changed_buckets = []
     buckets_to_check = if parallel?
@@ -254,7 +254,7 @@ class DeprecationTracker
     end
   end
 
-  def read_stored_deprecations(path = shitlist_path)
+  def read_stored_deprecations(path)
     return {} unless File.exist?(path)
     JSON.parse(File.read(path))
   rescue JSON::ParserError => e
