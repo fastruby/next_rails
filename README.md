@@ -37,6 +37,9 @@ We recommend upgrading **one minor version at a time** (e.g. 7.1 → 7.2, not 6.
 
 ### Setup
 
+> [!NOTE]
+> The `next_rails --init` command will add a `next?` helper method to the top of your Gemfile, which you can use to conditionally set gem versions.
+
 ```bash
 # Initialize dual boot (creates Gemfile.next and Gemfile.next.lock)
 next_rails --init
