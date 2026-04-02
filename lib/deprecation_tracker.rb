@@ -242,12 +242,7 @@ class DeprecationTracker
 
   # Normalize deprecation messages to reduce noise from file output and test files to be tracked with separate test runs
   def normalized_deprecation_messages
-    stored = if mode == :save
-      read_shitlist(target_path)
-    else
-      read_shitlist
-    end
-    normalized = stored.merge(deprecation_messages).each_with_object({}) do |(bucket, messages), hash|
+    normalized = read_shitlist(target_path).merge(deprecation_messages).each_with_object({}) do |(bucket, messages), hash|
       hash[bucket] = messages.sort
     end
 
