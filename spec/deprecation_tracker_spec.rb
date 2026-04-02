@@ -243,6 +243,11 @@ RSpec.describe DeprecationTracker do
       tracker.after_run
     end
 
+    it "defaults to save mode when mode is nil" do
+      tracker = DeprecationTracker.new(shitlist_path, nil, nil)
+      expect(tracker.mode).to eq(:save)
+    end
+
     it "does not save nor compare if mode is invalid" do
       tracker = DeprecationTracker.new(shitlist_path, nil, "random_stuff")
       expect(tracker).not_to receive(:save)

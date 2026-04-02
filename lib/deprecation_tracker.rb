@@ -135,7 +135,7 @@ class DeprecationTracker
     @shitlist_path = shitlist_path
     @transform_message = transform_message || -> (message) { message }
     @deprecation_messages = {}
-    @mode = mode.to_sym
+    @mode = mode ? mode.to_sym : :save
     @node_index = node_index
   end
 
