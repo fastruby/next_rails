@@ -330,7 +330,8 @@ RSpec.describe DeprecationTracker do
         tracker.add("a")
         tracker.save
 
-        expected_shard = "#{shitlist_path.chomp('.json')}.node-0.json"
+        ext = File.extname(shitlist_path)
+        expected_shard = "#{shitlist_path.chomp(ext)}.node-0#{ext}"
         expect(File.exist?(expected_shard)).to be true
         expect(JSON.parse(File.read(expected_shard))).to eq("bucket 1" => ["a"])
         expect(File.exist?(shitlist_path)).to be false
@@ -339,7 +340,8 @@ RSpec.describe DeprecationTracker do
       end
 
       it "merges with existing shard data on subsequent saves" do
-        shard = "#{shitlist_path.chomp('.json')}.node-0.json"
+        ext = File.extname(shitlist_path)
+        shard = "#{shitlist_path.chomp(ext)}.node-0#{ext}"
 
         tracker1 = DeprecationTracker.new(shitlist_path, nil, :save, node_index: "0")
         tracker1.bucket = "bucket 1"

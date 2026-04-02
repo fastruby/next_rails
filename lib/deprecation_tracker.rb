@@ -144,7 +144,8 @@ class DeprecationTracker
   end
 
   def shard_path
-    "#{shitlist_path.chomp('.json')}.node-#{node_index}.json"
+    ext = File.extname(shitlist_path)
+    "#{shitlist_path.chomp(ext)}.node-#{node_index}#{ext}"
   end
 
   def target_path
