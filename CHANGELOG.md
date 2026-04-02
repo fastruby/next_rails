@@ -1,10 +1,12 @@
-# main [(unreleased)](https://github.com/fastruby/next_rails/compare/v1.4.7...main)
+# main [(unreleased)](https://github.com/fastruby/next_rails/compare/v1.5.0...main)
 
 - [BUGFIX: example](https://github.com/fastruby/next_rails/pull/<number>)
 
-- [FEATURE: Add `NextRails.current?` as the inverse of `NextRails.next?`](https://github.com/fastruby/next_rails/pull/174)
-
 * Your changes/patches go here.
+
+# v1.5.0 / 2026-04-01 [(commits)](https://github.com/fastruby/next_rails/compare/v1.4.8...v1.5.0)
+
+- [FEATURE: Add `NextRails.current?` as the inverse of `NextRails.next?`](https://github.com/fastruby/next_rails/pull/174)
 
 # v1.4.8 / 2026-03-23 [(commits)](https://github.com/fastruby/next_rails/compare/v1.4.7...v1.4.8)
 
