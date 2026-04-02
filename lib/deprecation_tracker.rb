@@ -147,6 +147,10 @@ class DeprecationTracker
     "#{shitlist_path.chomp('.json')}.node-#{node_index}.json"
   end
 
+  def target_path
+    parallel? ? shard_path : shitlist_path
+  end
+
   def add(message)
     return if bucket.nil?
 
@@ -215,7 +219,6 @@ class DeprecationTracker
 
   def save
     new_shitlist = create_temp_shitlist
-    target_path = parallel? ? shard_path : shitlist_path
     create_if_path_does_not_exist(target_path)
     FileUtils.cp(new_shitlist.path, target_path)
   ensure
@@ -239,8 +242,8 @@ class DeprecationTracker
 
   # Normalize deprecation messages to reduce noise from file output and test files to be tracked with separate test runs
   def normalized_deprecation_messages
-    stored = if parallel? && mode == :save
-      read_shitlist(shard_path)
+    stored = if mode == :save
+      read_shitlist(target_path)
     else
       read_shitlist
     end
