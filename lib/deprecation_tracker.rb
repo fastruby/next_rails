@@ -92,7 +92,7 @@ class DeprecationTracker
 
   def self.init_tracker(opts = {})
     shitlist_path = opts[:shitlist_path] || DEFAULT_SHITLIST_PATH
-    mode = opts[:mode] || ENV["DEPRECATION_TRACKER"]
+    mode = opts[:mode] || ENV["DEPRECATION_TRACKER"] || :save
     transform_message = opts[:transform_message]
     node_index = opts[:node_index]
     deprecation_tracker = DeprecationTracker.new(shitlist_path, transform_message, mode, node_index: node_index)
