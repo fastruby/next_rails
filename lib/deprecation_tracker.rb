@@ -75,21 +75,6 @@ class DeprecationTracker
 
   DEFAULT_SHITLIST_PATH = "spec/support/deprecation_warning.shitlist.json"
 
-  CI_NODE_ENV_VARS = %w[
-    CIRCLE_NODE_INDEX
-    BUILDKITE_PARALLEL_JOB
-    SEMAPHORE_JOB_INDEX
-    CI_NODE_INDEX
-  ].freeze
-
-  def self.detect_node_index
-    CI_NODE_ENV_VARS.each do |var|
-      value = ENV[var]
-      return value if value
-    end
-    nil
-  end
-
   def self.init_tracker(opts = {})
     shitlist_path = opts[:shitlist_path] || DEFAULT_SHITLIST_PATH
     mode = opts[:mode] || ENV["DEPRECATION_TRACKER"] || :save

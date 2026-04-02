@@ -293,33 +293,6 @@ RSpec.describe DeprecationTracker do
     end
   end
 
-  describe ".detect_node_index" do
-    it "returns nil when no CI env vars are set" do
-      CI_NODE_ENV_VARS = DeprecationTracker::CI_NODE_ENV_VARS
-      CI_NODE_ENV_VARS.each { |var| ENV.delete(var) }
-
-      expect(DeprecationTracker.detect_node_index).to be_nil
-    end
-
-    it "detects CIRCLE_NODE_INDEX" do
-      stub_const("ENV", ENV.to_h.merge("CIRCLE_NODE_INDEX" => "2"))
-      expect(DeprecationTracker.detect_node_index).to eq("2")
-    end
-
-    it "detects BUILDKITE_PARALLEL_JOB" do
-      stub_const("ENV", ENV.to_h.merge("BUILDKITE_PARALLEL_JOB" => "1"))
-      expect(DeprecationTracker.detect_node_index).to eq("1")
-    end
-
-    it "returns the first matching env var" do
-      stub_const("ENV", ENV.to_h.merge(
-        "CIRCLE_NODE_INDEX" => "0",
-        "CI_NODE_INDEX" => "3"
-      ))
-      expect(DeprecationTracker.detect_node_index).to eq("0")
-    end
-  end
-
   describe "#parallel?" do
     it "returns false when node_index is nil" do
       tracker = DeprecationTracker.new(shitlist_path)
