@@ -293,6 +293,139 @@ RSpec.describe DeprecationTracker do
     end
   end
 
+  describe ".detect_node_index" do
+    it "returns nil when no CI env vars are set" do
+      CI_NODE_ENV_VARS = DeprecationTracker::CI_NODE_ENV_VARS
+      CI_NODE_ENV_VARS.each { |var| ENV.delete(var) }
+
+      expect(DeprecationTracker.detect_node_index).to be_nil
+    end
+
+    it "detects CIRCLE_NODE_INDEX" do
+      stub_const("ENV", ENV.to_h.merge("CIRCLE_NODE_INDEX" => "2"))
+      expect(DeprecationTracker.detect_node_index).to eq("2")
+    end
+
+    it "detects BUILDKITE_PARALLEL_JOB" do
+      stub_const("ENV", ENV.to_h.merge("BUILDKITE_PARALLEL_JOB" => "1"))
+      expect(DeprecationTracker.detect_node_index).to eq("1")
+    end
+
+    it "returns the first matching env var" do
+      stub_const("ENV", ENV.to_h.merge(
+        "CIRCLE_NODE_INDEX" => "0",
+        "CI_NODE_INDEX" => "3"
+      ))
+      expect(DeprecationTracker.detect_node_index).to eq("0")
+    end
+  end
+
+  describe "#parallel?" do
+    it "returns false when node_index is nil" do
+      tracker = DeprecationTracker.new(shitlist_path)
+      expect(tracker.parallel?).to be false
+    end
+
+    it "returns true when node_index is set" do
+      tracker = DeprecationTracker.new(shitlist_path, nil, :save, node_index: "0")
+      expect(tracker.parallel?).to be true
+    end
+  end
+
+  describe "#shard_path" do
+    it "derives shard path from shitlist_path and node_index" do
+      tracker = DeprecationTracker.new("spec/support/deprecation_warning.shitlist.json", nil, :save, node_index: "2")
+      expect(tracker.shard_path).to eq("spec/support/deprecation_warning.shitlist.node-2.json")
+    end
+
+    it "works with custom shitlist paths" do
+      tracker = DeprecationTracker.new("tmp/my_custom_shitlist.json", nil, :save, node_index: "0")
+      expect(tracker.shard_path).to eq("tmp/my_custom_shitlist.node-0.json")
+    end
+  end
+
+  describe "parallel mode" do
+    describe "#save" do
+      it "writes to shard path when node_index is set" do
+        tracker = DeprecationTracker.new(shitlist_path, nil, :save, node_index: "0")
+        tracker.bucket = "bucket 1"
+        tracker.add("a")
+        tracker.save
+
+        expected_shard = "#{shitlist_path.chomp('.json')}.node-0.json"
+        expect(File.exist?(expected_shard)).to be true
+        expect(JSON.parse(File.read(expected_shard))).to eq("bucket 1" => ["a"])
+        expect(File.exist?(shitlist_path)).to be false
+
+        FileUtils.rm(expected_shard)
+      end
+
+      it "merges with existing shard data on subsequent saves" do
+        shard = "#{shitlist_path.chomp('.json')}.node-0.json"
+
+        tracker1 = DeprecationTracker.new(shitlist_path, nil, :save, node_index: "0")
+        tracker1.bucket = "bucket 1"
+        tracker1.add("a")
+        tracker1.save
+
+        tracker2 = DeprecationTracker.new(shitlist_path, nil, :save, node_index: "0")
+        tracker2.bucket = "bucket 2"
+        tracker2.add("b")
+        tracker2.save
+
+        data = JSON.parse(File.read(shard))
+        expect(data).to eq("bucket 1" => ["a"], "bucket 2" => ["b"])
+
+        FileUtils.rm(shard)
+      end
+    end
+
+    describe "#compare" do
+      it "only checks buckets that this node ran" do
+        # Set up canonical shitlist with two buckets
+        setup_tracker = DeprecationTracker.new(shitlist_path)
+        setup_tracker.bucket = "bucket 1"
+        setup_tracker.add("a")
+        setup_tracker.bucket = "bucket 2"
+        setup_tracker.add("b")
+        setup_tracker.save
+
+        # Parallel node only runs bucket 2 with matching deprecations
+        tracker = DeprecationTracker.new(shitlist_path, nil, :compare, node_index: "0")
+        tracker.bucket = "bucket 2"
+        tracker.add("b")
+
+        expect { tracker.compare }.not_to raise_error
+      end
+
+      it "raises when this node's buckets have changed" do
+        setup_tracker = DeprecationTracker.new(shitlist_path)
+        setup_tracker.bucket = "bucket 1"
+        setup_tracker.add("a")
+        setup_tracker.save
+
+        tracker = DeprecationTracker.new(shitlist_path, nil, :compare, node_index: "0")
+        tracker.bucket = "bucket 1"
+        tracker.add("different")
+
+        expect { tracker.compare }.to raise_error(DeprecationTracker::UnexpectedDeprecations)
+      end
+    end
+  end
+
+  describe "default values" do
+    it "uses default shitlist_path when not provided" do
+      tracker = DeprecationTracker.init_tracker(mode: "save")
+      expect(tracker.shitlist_path).to eq("spec/support/deprecation_warning.shitlist.json")
+    end
+
+    it "uses ENV['DEPRECATION_TRACKER'] as default mode" do
+      stub_const("ENV", ENV.to_h.merge("DEPRECATION_TRACKER" => "compare"))
+      tracker = DeprecationTracker.init_tracker({})
+      expect(tracker.mode).to eq(:compare)
+    end
+  end
+
   describe DeprecationTracker::KernelWarnTracker do
     before { DeprecationTracker::KernelWarnTracker.callbacks.clear }
 
