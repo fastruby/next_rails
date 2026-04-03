@@ -73,11 +73,14 @@ class DeprecationTracker
     end
   end
 
+  DEFAULT_PATH = "spec/support/deprecation_warning.shitlist.json"
+
   def self.init_tracker(opts = {})
-    shitlist_path = opts[:shitlist_path]
-    mode = opts[:mode]
+    shitlist_path = opts[:shitlist_path] || DEFAULT_PATH
+    mode = opts[:mode] || ENV["DEPRECATION_TRACKER"] || :save
     transform_message = opts[:transform_message]
-    deprecation_tracker = DeprecationTracker.new(shitlist_path, transform_message, mode)
+    node_index = opts[:node_index]
+    deprecation_tracker = DeprecationTracker.new(shitlist_path, transform_message, mode, node_index: node_index)
     # Since Rails 7.1 the preferred way to track deprecations is to use the deprecation trackers via
     # `Rails.application.deprecators`.
     # We fallback to tracking deprecations via the ActiveSupport singleton object if Rails.application.deprecators is
@@ -126,13 +129,27 @@ class DeprecationTracker
     ActiveSupport::TestCase.include(MinitestExtension.new(tracker))
   end
 
-  attr_reader :deprecation_messages, :shitlist_path, :transform_message, :bucket, :mode
+  attr_reader :deprecation_messages, :shitlist_path, :transform_message, :bucket, :mode, :node_index
 
-  def initialize(shitlist_path, transform_message = nil, mode = :save)
+  def initialize(shitlist_path, transform_message = nil, mode = :save, node_index: nil)
     @shitlist_path = shitlist_path
     @transform_message = transform_message || -> (message) { message }
     @deprecation_messages = {}
-    @mode = mode.to_sym
+    @mode = mode ? mode.to_sym : :save
+    @node_index = node_index
+  end
+
+  def parallel?
+    !@node_index.nil?
+  end
+
+  def shard_path
+    ext = File.extname(shitlist_path)
+    "#{shitlist_path.chomp(ext)}.node-#{node_index}#{ext}"
+  end
+
+  def target_path
+    parallel? ? shard_path : shitlist_path
   end
 
   def add(message)
@@ -155,16 +172,23 @@ class DeprecationTracker
   end
 
   def compare
-    shitlist = read_shitlist
+    stored = read_json(shitlist_path)
 
     changed_buckets = []
-    normalized_deprecation_messages.each do |bucket, messages|
-      if shitlist[bucket] != messages
+    buckets_to_check = if parallel?
+      # In parallel mode, only check buckets that this node actually ran
+      normalized_deprecation_messages.select { |bucket, _| deprecation_messages.key?(bucket) }
+    else
+      normalized_deprecation_messages
+    end
+
+    buckets_to_check.each do |bucket, messages|
+      if stored[bucket] != messages
         changed_buckets << bucket
       end
     end
 
-    if changed_buckets.length > 0
+    if changed_buckets.any?
       message = <<-MESSAGE
         ⚠️  Deprecation warnings have changed!
 
@@ -188,28 +212,28 @@ class DeprecationTracker
   end
 
   def diff
-    new_shitlist = create_temp_shitlist
-    `git diff --no-index #{shitlist_path} #{new_shitlist.path}`
+    temp_file = create_temp_file
+    `git diff --no-index #{shitlist_path} #{temp_file.path}`
   ensure
-    new_shitlist.delete
+    temp_file.delete
   end
 
   def save
-    new_shitlist = create_temp_shitlist
-    create_if_shitlist_path_does_not_exist
-    FileUtils.cp(new_shitlist.path, shitlist_path)
+    temp_file = create_temp_file
+    create_if_path_does_not_exist(target_path)
+    FileUtils.cp(temp_file.path, target_path)
   ensure
-    new_shitlist.delete if new_shitlist
+    temp_file.delete if temp_file
   end
 
-  def create_if_shitlist_path_does_not_exist
-    dirname = File.dirname(shitlist_path)
+  def create_if_path_does_not_exist(path)
+    dirname = File.dirname(path)
     unless File.directory?(dirname)
       FileUtils.mkdir_p(dirname)
     end
   end
 
-  def create_temp_shitlist
+  def create_temp_file
     temp_file = Tempfile.new("temp-deprecation-tracker-shitlist")
     temp_file.write(JSON.pretty_generate(normalized_deprecation_messages))
     temp_file.flush
@@ -219,22 +243,24 @@ class DeprecationTracker
 
   # Normalize deprecation messages to reduce noise from file output and test files to be tracked with separate test runs
   def normalized_deprecation_messages
-    normalized = read_shitlist.merge(deprecation_messages).each_with_object({}) do |(bucket, messages), hash|
-      hash[bucket] = messages.sort
-    end
+    @normalized_deprecation_messages ||= begin
+      normalized = read_json(target_path).merge(deprecation_messages).each_with_object({}) do |(bucket, messages), hash|
+        hash[bucket] = messages.sort
+      end
 
-    # not using `to_h` here to support older ruby versions
-    {}.tap do |h|
-      normalized.reject {|_key, value| value.empty? }.sort_by {|key, _value| key }.each do |k ,v|
-        h[k] = v
+      # not using `to_h` here to support older ruby versions
+      {}.tap do |h|
+        normalized.reject {|_key, value| value.empty? }.sort_by {|key, _value| key }.each do |k ,v|
+          h[k] = v
+        end
       end
     end
   end
 
-  def read_shitlist
-    return {} unless File.exist?(shitlist_path)
-    JSON.parse(File.read(shitlist_path))
+  def read_json(path)
+    return {} unless File.exist?(path)
+    JSON.parse(File.read(path))
   rescue JSON::ParserError => e
-    raise "#{shitlist_path} is not valid JSON: #{e.message}"
+    raise "#{path} is not valid JSON: #{e.message}"
   end
 end
