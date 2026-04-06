@@ -2,6 +2,9 @@
 
 - [BUGFIX: example](https://github.com/fastruby/next_rails/pull/<number>)
 
+- [FEATURE: Add `deprecations merge` command to combine parallel CI shards](https://github.com/fastruby/next_rails/pull/177)
+- [FEATURE: Add parallel CI support for DeprecationTracker](https://github.com/fastruby/next_rails/pull/176)
+
 * Your changes/patches go here.
 
 # v1.5.0 / 2026-04-01 [(commits)](https://github.com/fastruby/next_rails/compare/v1.4.8...v1.5.0)

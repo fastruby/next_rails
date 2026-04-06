@@ -129,6 +129,11 @@ class DeprecationTracker
     ActiveSupport::TestCase.include(MinitestExtension.new(tracker))
   end
 
+  def self.merge_shards(base_path, delete_shards: false)
+    require_relative "deprecation_tracker/shard_merger"
+    ShardMerger.new(base_path).merge(delete_shards: delete_shards)[:result]
+  end
+
   attr_reader :deprecation_messages, :shitlist_path, :transform_message, :bucket, :mode, :node_index
 
   def initialize(shitlist_path, transform_message = nil, mode = :save, node_index: nil)

@@ -49,6 +49,8 @@ option_parser = OptionParser.new do |opts|
       bin/deprecations --next info # Show top ten deprecations for Rails 5
       bin/deprecations --pattern "ActiveRecord::Base" --verbose info # Show full details on deprecations matching pattern
       bin/deprecations --tracker-mode save --pattern "pass" run # Run tests that output deprecations matching pattern and update shitlist
+      bin/deprecations merge --delete-shards # Merge parallel CI shards and remove shard files
+      bin/deprecations --path custom/path/shitlist.json merge # Merge shards at a custom path
 
     Modes:
       info
@@ -56,6 +58,9 @@ option_parser = OptionParser.new do |opts|
 
       run
         Run tests that are known to cause deprecation warnings. Use --pattern to filter what tests are run.
+
+      merge
+        Merge parallel CI shard files into the canonical shitlist. Use with --delete-shards to remove shard files after merging.
 
     Options:
   MESSAGE
@@ -76,6 +81,14 @@ option_parser = OptionParser.new do |opts|
     options[:verbose] = true
   end
 
+  opts.on("--delete-shards", "Delete shard files after merging") do
+    options[:delete_shards] = true
+  end
+
+  opts.on("--path PATH", "Path to the shitlist file (overrides default and --next)") do |path|
+    options[:path] = path
+  end
+
   opts.on_tail("-h", "--help", "Prints this help") do
     puts opts
     exit
@@ -85,7 +98,23 @@ end
 option_parser.parse!
 
 options[:mode] = ARGV.last
-path = options[:next] ? "spec/support/deprecation_warning.next.shitlist.json" : "spec/support/deprecation_warning.shitlist.json"
+path = if options[:path]
+  options[:path]
+elsif options[:next]
+  "spec/support/deprecation_warning.next.shitlist.json"
+else
+  "spec/support/deprecation_warning.shitlist.json"
+end
+
+if options[:mode] == "merge"
+  require_relative "../lib/deprecation_tracker/shard_merger"
+  output = DeprecationTracker::ShardMerger.new(path).merge(delete_shards: !!options[:delete_shards])
+  shards = output[:shards]
+  result = output[:result]
+  total_messages = result.values.map(&:size).reduce(0, :+)
+  puts "Merged #{shards} shard files into #{path} (#{result.size} test files, #{total_messages} deprecation messages)"
+  exit 0
+end
 
 pattern_string = options.fetch(:pattern, ".+")
 pattern = /#{pattern_string}/
