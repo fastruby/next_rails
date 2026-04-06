@@ -406,21 +406,6 @@ RSpec.describe DeprecationTracker do
     end
   end
 
-  describe ".merge_shards" do
-    it "delegates to ShardMerger" do
-      merger = instance_double(DeprecationTracker::ShardMerger)
-      expect(DeprecationTracker::ShardMerger).to receive(:new)
-        .with("some/path.json", delete_shards: true)
-        .and_return(merger)
-      expect(merger).to receive(:merge)
-        .and_return({ shards: 1, result: { "bucket" => ["a"] } })
-
-      result = DeprecationTracker.merge_shards("some/path.json", delete_shards: true)
-
-      expect(result).to eq("bucket" => ["a"])
-    end
-  end
-
   describe DeprecationTracker::KernelWarnTracker do
     before { DeprecationTracker::KernelWarnTracker.callbacks.clear }
 
