@@ -179,9 +179,6 @@ deprecations merge --delete-shards
 
 # Or use --next to merge shards for the next Rails version
 deprecations merge --next --delete-shards
-
-# Use --path if your shitlist is in a custom location
-deprecations merge --path custom/path/shitlist.json --delete-shards
 ```
 
 You can also merge shards programmatically:

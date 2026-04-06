@@ -7,17 +7,18 @@ require "tempfile"
 require_relative "../lib/deprecation_tracker/shard_merger"
 
 RSpec.describe DeprecationTracker::ShardMerger do
-  let(:base_path) { Tempfile.new("shitlist").path }
-  let(:ext) { File.extname(base_path) }
-  let(:shard_prefix) { base_path.chomp(ext) }
+  let(:base_path) do
+    dir = Dir.tmpdir
+    File.join(dir, "shitlist-#{Process.pid}-#{rand(1000)}.json")
+  end
 
   after do
     FileUtils.rm_f(base_path)
-    Dir.glob("#{shard_prefix}.node-*#{ext}").each { |f| FileUtils.rm_f(f) }
+    Dir.glob("#{base_path.chomp('.json')}.node-*.json").each { |f| FileUtils.rm_f(f) }
   end
 
   def write_shard(index, data)
-    path = "#{shard_prefix}.node-#{index}#{ext}"
+    path = "#{base_path.chomp('.json')}.node-#{index}.json"
     File.write(path, JSON.pretty_generate(data))
     path
   end
@@ -70,17 +71,18 @@ RSpec.describe DeprecationTracker::ShardMerger do
     shard0 = write_shard(0, { "bucket 1" => ["a"] })
     shard1 = write_shard(1, { "bucket 2" => ["b"] })
 
-    subject.merge(delete_shards: true)
+    merger = described_class.new(base_path, delete_shards: true)
+    merger.merge
 
     expect(File.exist?(shard0)).to be false
     expect(File.exist?(shard1)).to be false
     expect(File.exist?(base_path)).to be true
   end
 
-  it "preserves shard files when delete_shards is false" do
+  it "preserves shard files by default" do
     shard0 = write_shard(0, { "bucket 1" => ["a"] })
 
-    subject.merge(delete_shards: false)
+    subject.merge
 
     expect(File.exist?(shard0)).to be true
   end
@@ -92,5 +94,12 @@ RSpec.describe DeprecationTracker::ShardMerger do
     result = subject.merge[:result]
 
     expect(result.keys).to eq(["a_bucket", "z_bucket"])
+  end
+
+  it "raises an error for invalid JSON in a shard file" do
+    shard_path = "#{base_path.chomp('.json')}.node-0.json"
+    File.write(shard_path, "not valid json")
+
+    expect { subject.merge }.to raise_error(/Invalid JSON in shard file/)
   end
 end

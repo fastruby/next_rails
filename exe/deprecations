@@ -50,7 +50,6 @@ option_parser = OptionParser.new do |opts|
       bin/deprecations --pattern "ActiveRecord::Base" --verbose info # Show full details on deprecations matching pattern
       bin/deprecations --tracker-mode save --pattern "pass" run # Run tests that output deprecations matching pattern and update shitlist
       bin/deprecations merge --delete-shards # Merge parallel CI shards and remove shard files
-      bin/deprecations --path custom/path/shitlist.json merge # Merge shards at a custom path
 
     Modes:
       info
@@ -85,10 +84,6 @@ option_parser = OptionParser.new do |opts|
     options[:delete_shards] = true
   end
 
-  opts.on("--path PATH", "Path to the shitlist file (overrides default and --next)") do |path|
-    options[:path] = path
-  end
-
   opts.on_tail("-h", "--help", "Prints this help") do
     puts opts
     exit
@@ -98,21 +93,15 @@ end
 option_parser.parse!
 
 options[:mode] = ARGV.last
-path = if options[:path]
-  options[:path]
-elsif options[:next]
-  "spec/support/deprecation_warning.next.shitlist.json"
-else
-  "spec/support/deprecation_warning.shitlist.json"
-end
+path = options[:next] ? "spec/support/deprecation_warning.next.shitlist.json" : "spec/support/deprecation_warning.shitlist.json"
 
 if options[:mode] == "merge"
   require_relative "../lib/deprecation_tracker/shard_merger"
-  output = DeprecationTracker::ShardMerger.new(path).merge(delete_shards: !!options[:delete_shards])
+  output = DeprecationTracker::ShardMerger.new(path, delete_shards: !!options[:delete_shards]).merge
   shards = output[:shards]
   result = output[:result]
   total_messages = result.values.map(&:size).reduce(0, :+)
-  puts "Merged #{shards} shard files into #{path} (#{result.size} test files, #{total_messages} deprecation messages)"
+  puts "Merged #{shards} shard files into #{path} (#{result.size} buckets, #{total_messages} deprecation messages)"
   exit 0
 end
 

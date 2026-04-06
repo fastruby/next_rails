@@ -407,27 +407,17 @@ RSpec.describe DeprecationTracker do
   end
 
   describe ".merge_shards" do
-    let(:base_path) { Tempfile.new("shitlist").path }
-    let(:ext) { File.extname(base_path) }
-    let(:shard_prefix) { base_path.chomp(ext) }
-
-    after do
-      FileUtils.rm_f(base_path)
-      Dir.glob("#{shard_prefix}.node-*#{ext}").each { |f| FileUtils.rm_f(f) }
-    end
-
-    def write_shard(index, data)
-      path = "#{shard_prefix}.node-#{index}#{ext}"
-      File.write(path, JSON.pretty_generate(data))
-      path
-    end
-
     it "delegates to ShardMerger" do
-      write_shard(0, { "bucket 1" => ["a"] })
+      merger = instance_double(DeprecationTracker::ShardMerger)
+      expect(DeprecationTracker::ShardMerger).to receive(:new)
+        .with("some/path.json", delete_shards: true)
+        .and_return(merger)
+      expect(merger).to receive(:merge)
+        .and_return({ shards: 1, result: { "bucket" => ["a"] } })
 
-      result = DeprecationTracker.merge_shards(base_path)
+      result = DeprecationTracker.merge_shards("some/path.json", delete_shards: true)
 
-      expect(result).to eq("bucket 1" => ["a"])
+      expect(result).to eq("bucket" => ["a"])
     end
   end
 
