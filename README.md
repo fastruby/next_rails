@@ -161,10 +161,7 @@ RSpec.configure do |config|
   if ENV["DEPRECATION_TRACKER"]
     DeprecationTracker.track_rspec(
       config,
-      shitlist_path: "spec/support/deprecation_warning.shitlist.json",
-      mode: ENV["DEPRECATION_TRACKER"],
-      node_index: ENV["CI_NODE_INDEX"],
-      transform_message: -> (message) { message.gsub("#{Rails.root}/", "") }
+      node_index: ENV["CI_NODE_INDEX"]
     )
   end
 end
