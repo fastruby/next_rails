@@ -2,6 +2,8 @@
 
 - [BUGFIX: example](https://github.com/fastruby/next_rails/pull/<number>)
 
+- [CHORE: Add Ruby 4.0 to the test matrix](https://github.com/fastruby/next_rails/pull/178)
+
 * Your changes/patches go here.
 
 # v1.5.0 / 2026-04-01 [(commits)](https://github.com/fastruby/next_rails/compare/v1.4.8...v1.5.0)
