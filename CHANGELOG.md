@@ -4,6 +4,7 @@
 
 - [FEATURE: Add `deprecations merge` command to combine parallel CI shards](https://github.com/fastruby/next_rails/pull/177)
 - [FEATURE: Add parallel CI support for DeprecationTracker](https://github.com/fastruby/next_rails/pull/176)
+- [CHORE: Add Ruby 4.0 to the test matrix](https://github.com/fastruby/next_rails/pull/178)
 
 * Your changes/patches go here.
 
