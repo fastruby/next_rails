@@ -361,7 +361,7 @@ RSpec.describe DeprecationTracker do
     end
 
     describe "#compare" do
-      it "only checks buckets that this node ran" do
+      it "only checks buckets that this process ran (without node_index)" do
         # Set up canonical shitlist with two buckets
         setup_tracker = DeprecationTracker.new(shitlist_path)
         setup_tracker.bucket = "bucket 1"
@@ -370,7 +370,23 @@ RSpec.describe DeprecationTracker do
         setup_tracker.add("b")
         setup_tracker.save
 
-        # Parallel node only runs bucket 2 with matching deprecations
+        # Process only runs bucket 2 with matching deprecations, no node_index needed
+        tracker = DeprecationTracker.new(shitlist_path, nil, :compare)
+        tracker.bucket = "bucket 2"
+        tracker.add("b")
+
+        expect { tracker.compare }.not_to raise_error
+      end
+
+      it "ignores node_index and only checks buckets this process ran" do
+        setup_tracker = DeprecationTracker.new(shitlist_path)
+        setup_tracker.bucket = "bucket 1"
+        setup_tracker.add("a")
+        setup_tracker.bucket = "bucket 2"
+        setup_tracker.add("b")
+        setup_tracker.save
+
+        # node_index passed (real-world config uses same block for save and compare)
         tracker = DeprecationTracker.new(shitlist_path, nil, :compare, node_index: "0")
         tracker.bucket = "bucket 2"
         tracker.add("b")
@@ -378,13 +394,13 @@ RSpec.describe DeprecationTracker do
         expect { tracker.compare }.not_to raise_error
       end
 
-      it "raises when this node's buckets have changed" do
+      it "raises when this process's buckets have changed" do
         setup_tracker = DeprecationTracker.new(shitlist_path)
         setup_tracker.bucket = "bucket 1"
         setup_tracker.add("a")
         setup_tracker.save
 
-        tracker = DeprecationTracker.new(shitlist_path, nil, :compare, node_index: "0")
+        tracker = DeprecationTracker.new(shitlist_path, nil, :compare)
         tracker.bucket = "bucket 1"
         tracker.add("different")
 

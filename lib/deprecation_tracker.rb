@@ -180,12 +180,10 @@ class DeprecationTracker
     stored = read_json(shitlist_path)
 
     changed_buckets = []
-    buckets_to_check = if parallel?
-      # In parallel mode, only check buckets that this node actually ran
-      normalized_deprecation_messages.select { |bucket, _| deprecation_messages.key?(bucket) }
-    else
-      normalized_deprecation_messages
-    end
+    # Only check buckets that this process actually ran.
+    # In single-process mode this is all buckets (no-op filter).
+    # In parallel mode this skips buckets belonging to other processes.
+    buckets_to_check = normalized_deprecation_messages.select { |bucket, _| deprecation_messages.key?(bucket) }
 
     buckets_to_check.each do |bucket, messages|
       if stored[bucket] != messages
