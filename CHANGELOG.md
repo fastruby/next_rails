@@ -2,7 +2,7 @@
 
 - [BUGFIX: example](https://github.com/fastruby/next_rails/pull/<number>)
 
-- [BUGFIX: Compare mode now checks only buckets the current process ran, fixing parallel test support](https://github.com/fastruby/next_rails/pull/<number>)
+- [BUGFIX: Compare mode now checks only buckets the current process ran, fixing parallel test support](https://github.com/fastruby/next_rails/pull/179)
 - [FEATURE: Add `deprecations merge` command to combine parallel CI shards](https://github.com/fastruby/next_rails/pull/177)
 - [FEATURE: Add parallel CI support for DeprecationTracker](https://github.com/fastruby/next_rails/pull/176)
 - [CHORE: Add Ruby 4.0 to the test matrix](https://github.com/fastruby/next_rails/pull/178)
