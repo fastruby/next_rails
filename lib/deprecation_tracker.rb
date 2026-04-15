@@ -141,7 +141,7 @@ class DeprecationTracker
     @transform_message = transform_message || -> (message) { message }
     @deprecation_messages = {}
     @mode = mode ? mode.to_sym : :save
-    @node_index = @mode == :compare ? nil : node_index
+    @node_index = (@mode == :compare) ? nil : node_index
   end
 
   def parallel?
