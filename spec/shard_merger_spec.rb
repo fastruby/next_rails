@@ -50,12 +50,25 @@ RSpec.describe DeprecationTracker::ShardMerger do
     expect(result).to eq("bucket 1" => ["a", "a", "b", "c"])
   end
 
-  it "returns an empty hash and writes empty JSON when no shards exist" do
+  it "warns and returns empty result when no shards exist" do
+    expect { output = subject.merge }.to output(/No shards found/).to_stderr
+
     output = subject.merge
 
     expect(output[:result]).to eq({})
     expect(output[:shards]).to eq(0)
-    expect(JSON.parse(File.read(base_path))).to eq({})
+    expect(File.exist?(base_path)).to be false
+  end
+
+  it "warns and returns empty result when directory does not exist" do
+    merger = described_class.new("/nonexistent/path/shitlist.json")
+
+    expect { output = merger.merge }.to output(/Directory does not exist/).to_stderr
+
+    output = merger.merge
+
+    expect(output[:result]).to eq({})
+    expect(output[:shards]).to eq(0)
   end
 
   it "handles a single shard file" do

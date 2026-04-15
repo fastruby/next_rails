@@ -11,7 +11,18 @@ class DeprecationTracker
     end
 
     def merge
+      dirname = File.dirname(base_path)
+      unless File.directory?(dirname)
+        warn "Directory does not exist: #{dirname}"
+        return { shards: 0, result: {} }
+      end
+
       shard_files = Dir.glob(shard_glob).sort
+
+      if shard_files.empty?
+        warn "No shards found at #{shard_glob}"
+        return { shards: 0, result: {} }
+      end
 
       merged = {}
       shard_files.each do |file|
@@ -24,9 +35,6 @@ class DeprecationTracker
       merged.sort.each do |k, v|
         result[k] = v.sort
       end
-
-      dirname = File.dirname(base_path)
-      FileUtils.mkdir_p(dirname) unless File.directory?(dirname)
 
       begin
         File.write(base_path, JSON.pretty_generate(result))
@@ -42,8 +50,7 @@ class DeprecationTracker
     private
 
     def shard_glob
-      ext = File.extname(base_path)
-      "#{base_path.chomp(ext)}.node-*#{ext}"
+      "#{base_path.chomp('.json')}.node-*.json"
     end
 
     def parse_shard(file)
