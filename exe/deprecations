@@ -3,6 +3,7 @@ require "json"
 require "rainbow"
 require "optparse"
 require "set"
+require_relative "../lib/deprecation_tracker/shard_merger"
 
 def run_tests(deprecation_warnings, opts = {})
   tracker_mode = opts[:tracker_mode]
@@ -49,6 +50,7 @@ option_parser = OptionParser.new do |opts|
       bin/deprecations --next info # Show top ten deprecations for Rails 5
       bin/deprecations --pattern "ActiveRecord::Base" --verbose info # Show full details on deprecations matching pattern
       bin/deprecations --tracker-mode save --pattern "pass" run # Run tests that output deprecations matching pattern and update shitlist
+      bin/deprecations merge --delete-shards # Merge parallel CI shards and remove shard files
 
     Modes:
       info
@@ -56,6 +58,9 @@ option_parser = OptionParser.new do |opts|
 
       run
         Run tests that are known to cause deprecation warnings. Use --pattern to filter what tests are run.
+
+      merge
+        Merge parallel CI shard files into the canonical shitlist. Use with --delete-shards to remove shard files after merging.
 
     Options:
   MESSAGE
@@ -76,6 +81,10 @@ option_parser = OptionParser.new do |opts|
     options[:verbose] = true
   end
 
+  opts.on("--delete-shards", "Delete shard files after merging") do
+    options[:delete_shards] = true
+  end
+
   opts.on_tail("-h", "--help", "Prints this help") do
     puts opts
     exit
@@ -87,24 +96,34 @@ option_parser.parse!
 options[:mode] = ARGV.last
 path = options[:next] ? "spec/support/deprecation_warning.next.shitlist.json" : "spec/support/deprecation_warning.shitlist.json"
 
-pattern_string = options.fetch(:pattern, ".+")
-pattern = /#{pattern_string}/
+case options[:mode]
+when "merge"
+  output = DeprecationTracker::ShardMerger.new(path, delete_shards: !!options[:delete_shards]).merge
+  shards = output[:shards]
+  result = output[:result]
+  total_messages = result.values.map(&:size).reduce(0, :+)
+  puts "Merged #{shards} shard files into #{path} (#{result.size} buckets, #{total_messages} deprecation messages)"
+when "run", "info"
+  pattern_string = options.fetch(:pattern, ".+")
+  pattern = /#{pattern_string}/
 
-deprecation_warnings = JSON.parse(File.read(path)).each_with_object({}) do |(test_file, messages), hash|
-  filtered_messages = messages.select {|message| message.match(pattern) }
-  hash[test_file] = filtered_messages if !filtered_messages.empty?
-end
+  deprecation_warnings = JSON.parse(File.read(path)).each_with_object({}) do |(test_file, messages), hash|
+    filtered_messages = messages.select {|message| message.match(pattern) }
+    hash[test_file] = filtered_messages if !filtered_messages.empty?
+  end
 
-if deprecation_warnings.empty?
-  abort "No test files with deprecations matching #{pattern.inspect}."
-  exit 2
-end
+  if deprecation_warnings.empty?
+    abort "No test files with deprecations matching #{pattern.inspect}."
+    exit 2
+  end
 
-case options.fetch(:mode, "info")
-when "run" then run_tests(deprecation_warnings, next_mode: options[:next], tracker_mode: options[:tracker_mode])
-when "info" then print_info(deprecation_warnings, verbose: options[:verbose])
+  if options[:mode] == "run"
+    run_tests(deprecation_warnings, next_mode: options[:next], tracker_mode: options[:tracker_mode])
+  else
+    print_info(deprecation_warnings, verbose: options[:verbose])
+  end
 when nil
-  STDERR.puts Rainbow("Must pass a mode: run or info").red
+  STDERR.puts Rainbow("Must pass a mode: run, info, or merge").red
   puts option_parser
   exit 1
 else

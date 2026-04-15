@@ -150,6 +150,61 @@ DEPRECATION_TRACKER=save rspec
 DEPRECATION_TRACKER=compare rspec
 ```
 
+### Parallel CI support
+
+When running tests across parallel CI nodes, each node can write to its own shard file to avoid conflicts. The tracker auto-detects the node index from common CI environment variables (`CI_NODE_INDEX`, `CIRCLE_NODE_INDEX`, `BUILDKITE_PARALLEL_JOB`, `SEMAPHORE_JOB_INDEX`, `CI_NODE_INDEX` for GitLab), or you can set it explicitly via the `node_index` option.
+
+#### RSpec
+
+```ruby
+RSpec.configure do |config|
+  if ENV["DEPRECATION_TRACKER"]
+    DeprecationTracker.track_rspec(
+      config,
+      node_index: ENV["CI_NODE_INDEX"]
+    )
+  end
+end
+```
+
+When `node_index` is set, the tracker writes to a shard file (e.g. `deprecation_warning.shitlist.node-0.json`) instead of the canonical file.
+
+#### Merging shards
+
+After all parallel nodes finish saving, merge shards into the canonical file:
+
+```bash
+# Merge all shard files and remove them afterwards
+deprecations merge --delete-shards
+
+# Or use --next to merge shards for the next Rails version
+deprecations merge --next --delete-shards
+```
+
+You can also merge shards programmatically:
+
+```ruby
+DeprecationTracker.merge_shards(
+  "spec/support/deprecation_warning.shitlist.json",
+  delete_shards: true
+)
+```
+
+#### Example CI workflow
+
+```yaml
+# 1. Save phase — each parallel node writes its own shard
+#    (runs on every node)
+DEPRECATION_TRACKER=save CI_NODE_INDEX=$NODE bundle exec rspec <subset>
+
+# 2. Merge phase — fan-in step, runs once after all nodes finish
+deprecations merge --delete-shards
+
+# 3. Compare phase — each parallel node checks its buckets
+#    against the merged canonical file
+DEPRECATION_TRACKER=compare CI_NODE_INDEX=$NODE bundle exec rspec <subset>
+```
+
 ### `deprecations` command
 
 View, filter, and manage stored deprecation warnings:
@@ -157,6 +212,7 @@ View, filter, and manage stored deprecation warnings:
 ```bash
 deprecations info
 deprecations info --pattern "ActiveRecord::Base"
+deprecations merge --delete-shards
 deprecations run
 deprecations --help
 ```
