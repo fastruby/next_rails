@@ -226,6 +226,60 @@ RSpec.describe DeprecationTracker do
     end
   end
 
+  describe "#normalized_deprecation_messages" do
+    it "merges stored and current messages" do
+      setup_tracker = DeprecationTracker.new(shitlist_path)
+      setup_tracker.bucket = "bucket 1"
+      setup_tracker.add("a")
+      setup_tracker.save
+
+      subject = DeprecationTracker.new(shitlist_path)
+      subject.bucket = "bucket 2"
+      subject.add("b")
+
+      normalized = subject.normalized_deprecation_messages
+      expect(normalized).to eq(
+        "bucket 1" => ["a"],
+        "bucket 2" => ["b"]
+      )
+    end
+
+    it "sorts messages per bucket" do
+      subject = DeprecationTracker.new(shitlist_path)
+      subject.bucket = "bucket 1"
+      subject.add("c")
+      subject.add("a")
+      subject.add("b")
+
+      normalized = subject.normalized_deprecation_messages
+      expect(normalized["bucket 1"]).to eq(["a", "b", "c"])
+    end
+
+    it "rejects empty buckets" do
+      setup_tracker = DeprecationTracker.new(shitlist_path)
+      setup_tracker.bucket = "bucket 1"
+      setup_tracker.add("a")
+      setup_tracker.save
+
+      subject = DeprecationTracker.new(shitlist_path)
+      # Don't add anything, just read
+
+      normalized = subject.normalized_deprecation_messages
+      expect(normalized).to eq("bucket 1" => ["a"])
+    end
+
+    it "sorts by bucket name" do
+      subject = DeprecationTracker.new(shitlist_path)
+      subject.bucket = "z_bucket"
+      subject.add("a")
+      subject.bucket = "a_bucket"
+      subject.add("b")
+
+      normalized = subject.normalized_deprecation_messages
+      expect(normalized.keys).to eq(["a_bucket", "z_bucket"])
+    end
+  end
+
   describe "#after_run" do
     let(:shitlist_path) { "some_path" }
 
