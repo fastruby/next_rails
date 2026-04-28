@@ -1,6 +1,6 @@
 # main [(unreleased)](https://github.com/fastruby/next_rails/compare/v1.5.0...main)
 
-- [BUGFIX: DeprecationTracker#compare ignores buckets](https://github.com/fastruby/next_rails/pull/180)
+- [BUGFIX: Fix Ruby 2.3 compatibility in DeprecationTracker#normalized_deprecation_messages](https://github.com/fastruby/next_rails/pull/180)
 - [BUGFIX: example](https://github.com/fastruby/next_rails/pull/<number>)
 
 - [BUGFIX: Compare mode now checks only buckets the current process ran, fixing parallel test support](https://github.com/fastruby/next_rails/pull/179)
