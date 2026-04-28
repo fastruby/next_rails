@@ -167,7 +167,7 @@ RSpec.configure do |config|
 end
 ```
 
-When `node_index` is set, the tracker writes to a shard file (e.g. `deprecation_warning.shitlist.node-0.json`) instead of the canonical file.
+The `node_index` option is only used in save mode. When set, the tracker writes to a shard file (e.g. `deprecation_warning.shitlist.node-0.json`) instead of the canonical file. Compare mode does not support `node_index` and will raise an error if passed—compare should only run after merging shards on the final canonical shitlist.
 
 #### Merging shards
 
@@ -200,9 +200,9 @@ DEPRECATION_TRACKER=save CI_NODE_INDEX=$NODE bundle exec rspec <subset>
 # 2. Merge phase — fan-in step, runs once after all nodes finish
 deprecations merge --delete-shards
 
-# 3. Compare phase — each parallel node checks its buckets
-#    against the merged canonical file
-DEPRECATION_TRACKER=compare CI_NODE_INDEX=$NODE bundle exec rspec <subset>
+# 3. Compare phase — each parallel node checks only its own buckets
+#    against the merged canonical file (no CI_NODE_INDEX needed)
+DEPRECATION_TRACKER=compare bundle exec rspec <subset>
 ```
 
 ### `deprecations` command

@@ -141,6 +141,9 @@ class DeprecationTracker
     @transform_message = transform_message || -> (message) { message }
     @deprecation_messages = {}
     @mode = mode ? mode.to_sym : :save
+    if @mode == :compare && node_index
+      raise ArgumentError, "node_index cannot be used with compare mode"
+    end
     @node_index = node_index
   end
 
@@ -180,14 +183,8 @@ class DeprecationTracker
     stored = read_json(shitlist_path)
 
     changed_buckets = []
-    buckets_to_check = if parallel?
-      # In parallel mode, only check buckets that this node actually ran
-      normalized_deprecation_messages.select { |bucket, _| deprecation_messages.key?(bucket) }
-    else
-      normalized_deprecation_messages
-    end
 
-    buckets_to_check.each do |bucket, messages|
+    normalized_deprecation_messages.each do |bucket, messages|
       if stored[bucket] != messages
         changed_buckets << bucket
       end
