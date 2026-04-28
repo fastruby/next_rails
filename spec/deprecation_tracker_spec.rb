@@ -378,20 +378,10 @@ RSpec.describe DeprecationTracker do
         expect { tracker.compare }.not_to raise_error
       end
 
-      it "ignores node_index and only checks buckets this process ran" do
-        setup_tracker = DeprecationTracker.new(shitlist_path)
-        setup_tracker.bucket = "bucket 1"
-        setup_tracker.add("a")
-        setup_tracker.bucket = "bucket 2"
-        setup_tracker.add("b")
-        setup_tracker.save
-
-        # node_index passed (real-world config uses same block for save and compare)
-        tracker = DeprecationTracker.new(shitlist_path, nil, :compare, node_index: "0")
-        tracker.bucket = "bucket 2"
-        tracker.add("b")
-
-        expect { tracker.compare }.not_to raise_error
+      it "raises error when node_index is passed with compare mode" do
+        expect do
+          DeprecationTracker.new(shitlist_path, nil, :compare, node_index: "0")
+        end.to raise_error(ArgumentError, "node_index cannot be used with compare mode")
       end
 
       it "raises when this process's buckets have changed" do

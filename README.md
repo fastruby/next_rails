@@ -167,7 +167,7 @@ RSpec.configure do |config|
 end
 ```
 
-The `node_index` option is only used in save mode. When set, the tracker writes to a shard file (e.g. `deprecation_warning.shitlist.node-0.json`) instead of the canonical file. In compare mode, `node_index` is not needed because the tracker automatically checks only the buckets that the current process ran.
+The `node_index` option is only used in save mode. When set, the tracker writes to a shard file (e.g. `deprecation_warning.shitlist.node-0.json`) instead of the canonical file. Compare mode does not support `node_index` and will raise an error if passed—compare should only run after merging shards on the final canonical shitlist.
 
 #### Merging shards
 

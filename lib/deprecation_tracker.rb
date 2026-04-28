@@ -141,7 +141,10 @@ class DeprecationTracker
     @transform_message = transform_message || -> (message) { message }
     @deprecation_messages = {}
     @mode = mode ? mode.to_sym : :save
-    @node_index = (@mode == :compare) ? nil : node_index
+    if @mode == :compare && node_index
+      raise ArgumentError, "node_index cannot be used with compare mode"
+    end
+    @node_index = node_index
   end
 
   def parallel?
