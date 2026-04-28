@@ -184,7 +184,7 @@ class DeprecationTracker
 
     changed_buckets = []
 
-    normalized_deprecation_messages.each do |bucket, messages|
+    deprecation_messages.each do |bucket, messages|
       if stored[bucket] != messages
         changed_buckets << bucket
       end
