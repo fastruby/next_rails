@@ -184,7 +184,7 @@ class DeprecationTracker
 
     changed_buckets = []
 
-    deprecation_messages.each do |bucket, messages|
+    normalized_deprecation_messages.each do |bucket, messages|
       if stored[bucket] != messages
         changed_buckets << bucket
       end
@@ -252,7 +252,7 @@ class DeprecationTracker
 
       # not using `to_h` here to support older ruby versions
       {}.tap do |h|
-        normalized.reject {|_key, value| value.empty? }.sort_by {|key, _value| key }.each do |k ,v|
+        normalized.reject {|_key, value| value.empty? }.sort_by {|key, _value| key }.each do |k, v|
           h[k] = v
         end
       end
