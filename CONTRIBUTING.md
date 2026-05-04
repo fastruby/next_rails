@@ -34,6 +34,10 @@ To run all of the tests, simply run:
 bundle exec rake
 ```
 
+### Testing against specific Ruby versions
+
+See the [Docker Development Environment for Old Ruby Versions](https://github.com/fastruby/next_rails/wiki/Docker-Development-Environment-for-Old-Ruby-Versions) wiki page for setup and examples.
+
 ## A word on the changelog
 
 You may also notice that we have a changelog in the form of [CHANGELOG.md](CHANGELOG.md). We use a format based on [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
