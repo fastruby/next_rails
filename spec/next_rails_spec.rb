@@ -5,6 +5,10 @@ require "spec_helper"
 require "fileutils"
 
 RSpec.describe NextRails do
+  before(:each) do
+    NextRails.reset_next_bundle_gemfile
+  end
+
   it "has a version number" do
     expect(NextRails::VERSION).not_to be nil
   end
@@ -20,7 +24,6 @@ RSpec.describe NextRails do
       context "when it is set to Gemfile.next" do
         it "returns true" do
           FileUtils.touch("Gemfile.next")
-          NextRails.reset_next_bundle_gemfile
 
           with_env("BUNDLE_GEMFILE" => "Gemfile.next")
           expect(NextRails.next?).to be_truthy
@@ -29,7 +32,6 @@ RSpec.describe NextRails do
         context "when Gemfile.next file does not exist" do
           it "returns false" do
             FileUtils.rm("Gemfile.next")
-            NextRails.reset_next_bundle_gemfile
 
             with_env("BUNDLE_GEMFILE" => "Gemfile.next")
             expect(NextRails.next?).to be_falsey
@@ -40,7 +42,6 @@ RSpec.describe NextRails do
       context "when it is set to something else" do
         it "returns false" do
           FileUtils.touch("Gemfile4")
-          NextRails.reset_next_bundle_gemfile
 
           with_env("BUNDLE_GEMFILE" => "Gemfile4")
           expect(NextRails.next?).to be_falsey
@@ -54,7 +55,6 @@ RSpec.describe NextRails do
   describe "NextRails.current?" do
     context "when BUNDLE_GEMFILE is not set" do
       it "returns true" do
-        NextRails.reset_next_bundle_gemfile
         expect(NextRails.current?).to be_truthy
       end
     end
@@ -63,7 +63,6 @@ RSpec.describe NextRails do
       context "when it is set to Gemfile.next" do
         it "returns false" do
           FileUtils.touch("Gemfile.next")
-          NextRails.reset_next_bundle_gemfile
 
           with_env("BUNDLE_GEMFILE" => "Gemfile.next")
           expect(NextRails.current?).to be_falsey
@@ -73,7 +72,6 @@ RSpec.describe NextRails do
       context "when it is set to something else" do
         it "returns true" do
           FileUtils.touch("Gemfile4")
-          NextRails.reset_next_bundle_gemfile
 
           with_env("BUNDLE_GEMFILE" => "Gemfile4")
           expect(NextRails.current?).to be_truthy
