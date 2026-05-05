@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "rainbow"
+require "next_rails/tint"
 require "spec_helper"
 
 RSpec.describe NextRails::BundleReport do
@@ -30,14 +30,14 @@ RSpec.describe NextRails::BundleReport do
       it 'invokes $stdout.puts properly', :aggregate_failures do
         allow($stdout)
           .to receive(:puts)
-          .with("#{Rainbow('alpha 0.0.1').bold.white}: released #{alpha_age} (latest version, 0.0.2, released #{bravo_age})\n")
+          .with("#{NextRails::Tint['alpha 0.0.1'].bold.white}: released #{alpha_age} (latest version, 0.0.2, released #{bravo_age})\n")
         allow($stdout)
           .to receive(:puts)
-          .with("#{Rainbow('bravo 0.2.0').bold.white}: released #{bravo_age} (latest version, 0.2.2, released #{charlie_age})\n")
+          .with("#{NextRails::Tint['bravo 0.2.0'].bold.white}: released #{bravo_age} (latest version, 0.2.2, released #{charlie_age})\n")
         allow($stdout).to receive(:puts).with('')
         allow($stdout).to receive(:puts).with(<<-EO_MULTLINE_STRING)
-          #{Rainbow('1').yellow} gems are sourced from git
-          #{Rainbow('2').red} of the 2 gems are out-of-date (100%)
+          #{NextRails::Tint['1'].yellow} gems are sourced from git
+          #{NextRails::Tint['2'].red} of the 2 gems are out-of-date (100%)
         EO_MULTLINE_STRING
       end
     end
