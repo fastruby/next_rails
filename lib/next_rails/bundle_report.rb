@@ -105,14 +105,14 @@ module NextRails
         header = "#{gem.name} #{gem.version}"
 
         puts <<-MESSAGE
-          #{NextRails::Tint[header].bold.white}: released #{gem.age} (latest version, #{gem.latest_version.version}, released #{gem.latest_version.age})
+          #{NextRails::Tint(header).bold.white}: released #{gem.age} (latest version, #{gem.latest_version.version}, released #{gem.latest_version.age})
         MESSAGE
       end
 
       percentage_out_of_date = ((out_of_date_gems.count / total_gem_count.to_f) * 100).round
       footer = <<-MESSAGE
-        #{NextRails::Tint[sourced_from_git_count.to_s].yellow} gems are sourced from git
-        #{NextRails::Tint[out_of_date_gems.count.to_s].red} of the #{total_gem_count} gems are out-of-date (#{percentage_out_of_date}%)
+        #{NextRails::Tint(sourced_from_git_count.to_s).yellow} gems are sourced from git
+        #{NextRails::Tint(out_of_date_gems.count.to_s).red} of the #{total_gem_count} gems are out-of-date (#{percentage_out_of_date}%)
       MESSAGE
 
       puts ''

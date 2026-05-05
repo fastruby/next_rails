@@ -2,9 +2,13 @@
 
 module NextRails
   # Lightweight ANSI color/style wrapper with chainable style methods.
-  # Wrap a string with `NextRails::Tint["text"]` then chain styles:
+  # Wrap a string with `NextRails::Tint("text")` then chain styles:
   #
-  #   NextRails::Tint["hello"].red.bold
+  #   NextRails::Tint("hello").red.bold
+  #
+  # Instances are effectively immutable: each style method returns a new
+  # `Tint` rather than mutating the receiver, so a reference can be reused
+  # without styles accumulating across chains.
   class Tint
     CODES = {
       bold: 1,
@@ -18,26 +22,26 @@ module NextRails
       white: 37
     }.freeze
 
-    def self.[](string)
-      new(string)
-    end
-
-    def initialize(string)
+    def initialize(string, codes = [])
       @string = string.to_s
-      @codes = []
+      @codes = codes
     end
 
     CODES.each_key do |style|
       define_method(style) do
-        @codes << CODES[style]
-        self
+        self.class.new(@string, @codes + [CODES[style]])
       end
     end
 
     def to_s
       return @string if @codes.empty?
+
       "\e[#{@codes.join(";")}m#{@string}\e[0m"
     end
     alias_method :to_str, :to_s
+  end
+
+  def self.Tint(string)
+    Tint.new(string)
   end
 end

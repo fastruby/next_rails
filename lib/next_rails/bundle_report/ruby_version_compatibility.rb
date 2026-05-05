@@ -16,17 +16,14 @@ class NextRails::BundleReport::RubyVersionCompatibility
   private
 
   def message
-    gem_lines = incompatible.map { |gem|
-      NextRails::Tint["#{gem.name} - required Ruby version: #{gem.gem_specification.required_ruby_version}"].magenta
-    }.join("\n")
     noun = incompatible.one? ? "gem" : "gems"
-
-    <<~MESSAGE
-      #{NextRails::Tint["=> Incompatible gems with Ruby #{ruby_version}:"].white.bold}
-      #{gem_lines}
-
-      #{NextRails::Tint["#{incompatible.length} incompatible #{noun} with Ruby #{ruby_version}"].red}
-    MESSAGE
+    parts = [NextRails::Tint("=> Incompatible gems with Ruby #{ruby_version}:").white.bold]
+    incompatible.each do |gem|
+      parts << NextRails::Tint("#{gem.name} - required Ruby version: #{gem.gem_specification.required_ruby_version}").magenta
+    end
+    parts << ""
+    parts << NextRails::Tint("#{incompatible.length} incompatible #{noun} with Ruby #{ruby_version}").red
+    parts.join("\n")
   end
 
   def incompatible
@@ -38,7 +35,7 @@ class NextRails::BundleReport::RubyVersionCompatibility
   end
 
   def invalid_message
-    NextRails::Tint["=> Invalid Ruby version: #{options[:ruby_version]}."].red.bold
+    NextRails::Tint("=> Invalid Ruby version: #{options[:ruby_version]}.").red.bold
   end
 
   def valid?

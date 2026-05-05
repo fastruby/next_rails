@@ -209,7 +209,7 @@ class DeprecationTracker
         See \e[4;37mdev-docs/testing/deprecation_tracker.md\e[0;31m for more information.
       MESSAGE
 
-      raise UnexpectedDeprecations, NextRails::Tint[message].red
+      raise UnexpectedDeprecations, NextRails::Tint(message).red
     end
   end
 
