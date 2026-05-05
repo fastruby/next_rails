@@ -1,6 +1,6 @@
 # main [(unreleased)](https://github.com/fastruby/next_rails/compare/v1.5.0...main)
 
-- [BUGFIX: example](https://github.com/fastruby/next_rails/pull/183)
+- [BUGFIX: example](https://github.com/fastruby/next_rails/pull/<number>)
 
 - [CHORE: Drop `rainbow` gem dependency in favor of a native `NextRails::Tint` ANSI wrapper](https://github.com/fastruby/next_rails/pull/183)
 - [BUGFIX: Compare mode now checks only buckets the current process ran, fixing parallel test support](https://github.com/fastruby/next_rails/pull/179)
