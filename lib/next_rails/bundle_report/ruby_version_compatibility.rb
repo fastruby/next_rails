@@ -10,9 +10,7 @@ class NextRails::BundleReport::RubyVersionCompatibility
   end
 
   def generate
-    return invalid_message unless valid?
-
-    message
+    (valid? ? message : invalid_message).to_s
   end
 
   private
@@ -40,7 +38,7 @@ class NextRails::BundleReport::RubyVersionCompatibility
   end
 
   def invalid_message
-    NextRails::Tint["=> Invalid Ruby version: #{options[:ruby_version]}."].red.bold.to_s
+    NextRails::Tint["=> Invalid Ruby version: #{options[:ruby_version]}."].red.bold
   end
 
   def valid?
