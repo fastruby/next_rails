@@ -40,7 +40,7 @@ class NextRails::BundleReport::RubyVersionCompatibility
   end
 
   def invalid_message
-    NextRails::Tint["=> Invalid Ruby version: #{options[:ruby_version]}."].red.bold
+    NextRails::Tint["=> Invalid Ruby version: #{options[:ruby_version]}."].red.bold.to_s
   end
 
   def valid?
