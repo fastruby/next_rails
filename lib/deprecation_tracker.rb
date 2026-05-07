@@ -1,4 +1,4 @@
-require "rainbow"
+require "next_rails/tint"
 require "json"
 
 # A shitlist for deprecation warnings during test runs. It has two modes: "save" and "compare"
@@ -209,7 +209,7 @@ class DeprecationTracker
         See \e[4;37mdev-docs/testing/deprecation_tracker.md\e[0;31m for more information.
       MESSAGE
 
-      raise UnexpectedDeprecations, Rainbow(message).red
+      raise UnexpectedDeprecations, NextRails::Tint(message).red
     end
   end
 

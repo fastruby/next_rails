@@ -85,6 +85,22 @@ RSpec.describe DeprecationTracker do
 
       expect { subject.compare }.to raise_error(DeprecationTracker::UnexpectedDeprecations, /Deprecation warnings have changed/)
     end
+
+    it "wraps the raised message with red ANSI escape codes" do
+      setup_tracker = DeprecationTracker.new(shitlist_path)
+      setup_tracker.bucket = "bucket 1"
+      setup_tracker.add("a")
+      setup_tracker.save
+
+      subject = DeprecationTracker.new(shitlist_path)
+      subject.bucket = "bucket 1"
+      subject.add("b")
+
+      expect { subject.compare }.to raise_error(DeprecationTracker::UnexpectedDeprecations) do |error|
+        expect(error.message).to start_with("\e[31m")
+        expect(error.message).to end_with("\e[0m")
+      end
+    end
   end
 
   describe "#save" do

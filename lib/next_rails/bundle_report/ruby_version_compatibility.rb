@@ -1,4 +1,4 @@
-require "rainbow"
+require "next_rails/tint"
 
 class NextRails::BundleReport::RubyVersionCompatibility
   MINIMAL_VERSION = 1.0
@@ -10,20 +10,20 @@ class NextRails::BundleReport::RubyVersionCompatibility
   end
 
   def generate
-    return invalid_message unless valid?
-
-    message
+    (valid? ? message : invalid_message).to_s
   end
 
   private
 
   def message
-    output = Rainbow("=> Incompatible gems with Ruby #{ruby_version}:").white.bold
+    noun = incompatible.one? ? "gem" : "gems"
+    parts = [NextRails::Tint("=> Incompatible gems with Ruby #{ruby_version}:").white.bold]
     incompatible.each do |gem|
-      output += Rainbow("\n#{gem.name} - required Ruby version: #{gem.gem_specification.required_ruby_version}").magenta
+      parts << NextRails::Tint("#{gem.name} - required Ruby version: #{gem.gem_specification.required_ruby_version}").magenta
     end
-    output += Rainbow("\n\n#{incompatible.length} incompatible #{incompatible.one? ? 'gem' : 'gems' } with Ruby #{ruby_version}").red
-    output
+    parts << ""
+    parts << NextRails::Tint("#{incompatible.length} incompatible #{noun} with Ruby #{ruby_version}").red
+    parts.join("\n")
   end
 
   def incompatible
@@ -35,7 +35,7 @@ class NextRails::BundleReport::RubyVersionCompatibility
   end
 
   def invalid_message
-    Rainbow("=> Invalid Ruby version: #{options[:ruby_version]}.").red.bold
+    NextRails::Tint("=> Invalid Ruby version: #{options[:ruby_version]}.").red.bold
   end
 
   def valid?

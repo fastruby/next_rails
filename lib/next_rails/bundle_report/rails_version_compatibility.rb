@@ -1,3 +1,5 @@
+require "next_rails/tint"
+
 class NextRails::BundleReport::RailsVersionCompatibility
   def initialize(gems: NextRails::GemInfo.all, options: {})
     @gems = gems
@@ -20,8 +22,8 @@ class NextRails::BundleReport::RailsVersionCompatibility
   def erb_output
     template = <<-ERB
 <% if incompatible_gems_by_state[:found_compatible] -%>
-<%= Rainbow("=> Incompatible with Rails #{rails_version} (with new versions that are compatible):").white.bold %>
-<%= Rainbow("These gems will need to be upgraded before upgrading to Rails #{rails_version}.").italic %>
+<%= NextRails::Tint("=> Incompatible with Rails #{rails_version} (with new versions that are compatible):").white.bold %>
+<%= NextRails::Tint("These gems will need to be upgraded before upgrading to Rails #{rails_version}.").italic %>
 
 <% incompatible_gems_by_state[:found_compatible].each do |gem| -%>
 <%= gem_header(gem) %> - upgrade to <%= gem.latest_compatible_version.version %>
@@ -29,8 +31,8 @@ class NextRails::BundleReport::RailsVersionCompatibility
 
 <% end -%>
 <% if incompatible_gems_by_state[:incompatible] -%>
-<%= Rainbow("=> Incompatible with Rails #{rails_version} (with no new compatible versions):").white.bold %>
-<%= Rainbow("These gems will need to be removed or replaced before upgrading to Rails #{rails_version}.").italic %>
+<%= NextRails::Tint("=> Incompatible with Rails #{rails_version} (with no new compatible versions):").white.bold %>
+<%= NextRails::Tint("These gems will need to be removed or replaced before upgrading to Rails #{rails_version}.").italic %>
 
 <% incompatible_gems_by_state[:incompatible].each do |gem| -%>
 <%= gem_header(gem) %> - new version, <%= gem.latest_version.version %>, is not compatible with Rails #{rails_version}
@@ -38,16 +40,16 @@ class NextRails::BundleReport::RailsVersionCompatibility
 
 <% end -%>
 <% if incompatible_gems_by_state[:no_new_version] -%>
-<%= Rainbow("=> Incompatible with Rails #{rails_version} (with no new versions):").white.bold %>
-<%= Rainbow("These gems will need to be upgraded by us or removed before upgrading to Rails #{rails_version}.").italic %>
-<%= Rainbow("This list is likely to contain internal gems, like Cuddlefish.").italic %>
+<%= NextRails::Tint("=> Incompatible with Rails #{rails_version} (with no new versions):").white.bold %>
+<%= NextRails::Tint("These gems will need to be upgraded by us or removed before upgrading to Rails #{rails_version}.").italic %>
+<%= NextRails::Tint("This list is likely to contain internal gems, like Cuddlefish.").italic %>
 
 <% incompatible_gems_by_state[:no_new_version].each do |gem| -%>
 <%= gem_header(gem) %> - new version not found
 <% end -%>
 
 <% end -%>
-<%= Rainbow(incompatible_gems.length.to_s).red %> gems incompatible with Rails <%= rails_version %>
+<%= NextRails::Tint(incompatible_gems.length.to_s).red %> gems incompatible with Rails <%= rails_version %>
     ERB
 
     erb_version = ERB.version
@@ -63,9 +65,9 @@ class NextRails::BundleReport::RailsVersionCompatibility
   end
 
   def gem_header(_gem)
-    header = Rainbow("#{_gem.name} #{_gem.version}").bold
-    header << Rainbow(" (loaded from git)").magenta if _gem.sourced_from_git?
-    header
+    parts = [NextRails::Tint("#{_gem.name} #{_gem.version}").bold]
+    parts << NextRails::Tint(" (loaded from git)").magenta if _gem.sourced_from_git?
+    parts.join
   end
 
   def incompatible_gems

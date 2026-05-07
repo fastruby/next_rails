@@ -3,6 +3,7 @@
 require "optparse"
 require "next_rails"
 require "next_rails/bundle_report"
+require "next_rails/tint"
 
 class NextRails::BundleReport::CLI
   def initialize(argv)
@@ -89,7 +90,7 @@ class NextRails::BundleReport::CLI
     begin
       option_parser.parse!(@argv)
     rescue OptionParser::ParseError => e
-      warn Rainbow(e.message).red
+      warn NextRails::Tint(e.message).red
       puts option_parser
       exit 1
     end
