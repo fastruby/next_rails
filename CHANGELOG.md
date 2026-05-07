@@ -1,5 +1,7 @@
 # main [(unreleased)](https://github.com/fastruby/next_rails/compare/v1.6.0...main)
 
+- [BUGFIX: example](https://github.com/fastruby/next_rails/pull/<number>)
+
 * Your changes/patches go here.
 
 # v1.6.0 / 2026-05-07 [(commits)](https://github.com/fastruby/next_rails/compare/v1.5.0...v1.6.0)
