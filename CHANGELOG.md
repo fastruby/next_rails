@@ -1,14 +1,14 @@
-# main [(unreleased)](https://github.com/fastruby/next_rails/compare/v1.5.0...main)
+# main [(unreleased)](https://github.com/fastruby/next_rails/compare/v1.6.0...main)
 
-- [BUGFIX: example](https://github.com/fastruby/next_rails/pull/<number>)
+* Your changes/patches go here.
+
+# v1.6.0 / 2026-05-07 [(commits)](https://github.com/fastruby/next_rails/compare/v1.5.0...v1.6.0)
 
 - [CHORE: Drop `rainbow` gem dependency in favor of a native `NextRails::Tint` ANSI wrapper](https://github.com/fastruby/next_rails/pull/183)
 - [BUGFIX: Compare mode now checks only buckets the current process ran, fixing parallel test support](https://github.com/fastruby/next_rails/pull/179)
 - [FEATURE: Add `deprecations merge` command to combine parallel CI shards](https://github.com/fastruby/next_rails/pull/177)
 - [FEATURE: Add parallel CI support for DeprecationTracker](https://github.com/fastruby/next_rails/pull/176)
 - [CHORE: Add Ruby 4.0 to the test matrix](https://github.com/fastruby/next_rails/pull/178)
-
-* Your changes/patches go here.
 
 # v1.5.0 / 2026-04-01 [(commits)](https://github.com/fastruby/next_rails/compare/v1.4.8...v1.5.0)
 
