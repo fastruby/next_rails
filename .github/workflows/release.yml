@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  release:
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Extract version from branch name
+        id: version
+        run: |
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+          VERSION="${BRANCH#release/}"
+          echo "tag=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "gem_version=${VERSION#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Tag release
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ steps.version.outputs.tag }}
+          git push origin ${{ steps.version.outputs.tag }}
+
+      - name: Extract changelog notes
+        id: changelog
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          NOTES=$(awk "/^# ${TAG} /{found=1; next} found && /^# /{exit} found{print}" CHANGELOG.md)
+          echo "notes<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$NOTES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ steps.version.outputs.tag }} \
+            --title "${{ steps.version.outputs.tag }}" \
+            --notes "${{ steps.changelog.outputs.notes }}"
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+          bundler-cache: true
+
+      - name: Build gem
+        run: gem build next_rails.gemspec
+
+      - name: Push to RubyGems
+        env:
+          GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
+        run: gem push next_rails-${{ steps.version.outputs.gem_version }}.gem
