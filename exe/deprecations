@@ -3,10 +3,13 @@ require "json"
 require "rainbow"
 require "optparse"
 require "set"
-require_relative "../lib/deprecation_tracker/shard_merger"
+require_relative "../lib/deprecation_tracker"
 
 def run_tests(deprecation_warnings, opts = {})
   tracker_mode = opts[:tracker_mode]
+  if tracker_mode && !DeprecationTracker::VALID_MODES.include?(tracker_mode.to_sym)
+    abort "Invalid --tracker-mode #{tracker_mode.inspect}. Must be one of: #{DeprecationTracker::VALID_MODES.map(&:to_s).join(", ")}."
+  end
   next_mode = opts[:next_mode]
   rspec_command = if next_mode
     "bin/next rspec"
@@ -69,7 +72,7 @@ option_parser = OptionParser.new do |opts|
     options[:next] = next_mode
   end
 
-  opts.on("--tracker-mode MODE", "Set DEPRECATION_TRACKER in test mode. Options: save or compare") do |tracker_mode|
+  opts.on("--tracker-mode MODE", "Set DEPRECATION_TRACKER in test mode. Options: #{DeprecationTracker::VALID_MODES.map(&:to_s).join(", ")}") do |tracker_mode|
     options[:tracker_mode] = tracker_mode
   end
 

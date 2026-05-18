@@ -264,11 +264,10 @@ RSpec.describe DeprecationTracker do
       expect(tracker.mode).to eq(:save)
     end
 
-    it "does not save nor compare if mode is invalid" do
-      tracker = DeprecationTracker.new(shitlist_path, nil, "random_stuff")
-      expect(tracker).not_to receive(:save)
-      expect(tracker).not_to receive(:compare)
-      tracker.after_run
+    it "raises ArgumentError for invalid mode" do
+      expect {
+        DeprecationTracker.new(shitlist_path, nil, "random_stuff")
+      }.to raise_error(ArgumentError, /mode must be one of save, compare/)
     end
   end
 
@@ -425,6 +424,27 @@ RSpec.describe DeprecationTracker do
       stub_const("ENV", ENV.to_h.merge("DEPRECATION_TRACKER" => "compare"))
       tracker = DeprecationTracker.init_tracker({})
       expect(tracker.mode).to eq(:compare)
+    end
+
+    it "raises ArgumentError when ENV['DEPRECATION_TRACKER'] is invalid" do
+      stub_const("ENV", ENV.to_h.merge("DEPRECATION_TRACKER" => "bogus"))
+      expect {
+        DeprecationTracker.init_tracker({})
+      }.to raise_error(ArgumentError, /mode must be one of save, compare/)
+    end
+  end
+
+  describe "VALID_MODES" do
+    it "contains save and compare" do
+      expect(DeprecationTracker::VALID_MODES).to contain_exactly(:save, :compare)
+    end
+
+    it "accepts all valid modes without error" do
+      DeprecationTracker::VALID_MODES.each do |mode|
+        expect {
+          DeprecationTracker.new(shitlist_path, nil, mode)
+        }.not_to raise_error
+      end
     end
   end
 

@@ -12,6 +12,7 @@ require "json"
 #
 class DeprecationTracker
   UnexpectedDeprecations = Class.new(StandardError)
+  VALID_MODES = %i[save compare].freeze
 
   module KernelWarnTracker
     def self.callbacks
@@ -141,6 +142,9 @@ class DeprecationTracker
     @transform_message = transform_message || -> (message) { message }
     @deprecation_messages = {}
     @mode = mode ? mode.to_sym : :save
+    unless VALID_MODES.include?(@mode)
+      raise ArgumentError, "mode must be one of #{VALID_MODES.map(&:to_s).join(", ")}, got: #{mode.inspect}"
+    end
     if @mode == :compare && node_index
       raise ArgumentError, "node_index cannot be used with compare mode"
     end
