@@ -10,9 +10,10 @@ require "json"
 # Tracks deprecation warnings, grouped by spec file. After the test run, compare against shitlist of expected
 # deprecation warnings. If anything is added or removed, raise an error with a diff of the changes.
 #
+require_relative "deprecation_tracker/valid_modes"
+
 class DeprecationTracker
   UnexpectedDeprecations = Class.new(StandardError)
-  VALID_MODES = %i[save compare].freeze
 
   module KernelWarnTracker
     def self.callbacks
@@ -143,7 +144,7 @@ class DeprecationTracker
     @deprecation_messages = {}
     @mode = mode ? mode.to_sym : :save
     unless VALID_MODES.include?(@mode)
-      raise ArgumentError, "mode must be one of #{VALID_MODES.map(&:to_s).join(", ")}, got: #{mode.inspect}"
+      raise ArgumentError, "mode must be one of #{VALID_MODES_DISPLAY}, got: #{mode.inspect}"
     end
     if @mode == :compare && node_index
       raise ArgumentError, "node_index cannot be used with compare mode"
