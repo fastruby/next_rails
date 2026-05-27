@@ -51,8 +51,48 @@ vim Gemfile
 next bundle install
 
 # Start your server using the next Gemfile
-next rails s
+next rails server
 ```
+
+### How `next` works (and using `BUNDLE_GEMFILE` directly)
+
+The `next` command is a thin wrapper. It runs your command with `BUNDLE_GEMFILE`
+set so Bundler reads the next dependency set instead of the default one. So these
+two are equivalent:
+
+```bash
+next rails server
+
+BUNDLE_GEMFILE=Gemfile.next rails server
+```
+
+Set `BUNDLE_GEMFILE=Gemfile.next` directly when you can't use the `next` wrapper,
+for example in CI jobs, IDE run configurations, Docker, or other tooling that
+calls Bundler on its own:
+
+```bash
+# Run the test suite against the next Gemfile in CI
+BUNDLE_GEMFILE=Gemfile.next bundle exec rspec
+
+# Export it for a whole shell session
+export BUNDLE_GEMFILE=Gemfile.next
+bundle install
+rails server
+```
+
+When updating `Gemfile.next.lock`, prefer a conservative update so you only bump
+what you intend to and keep the diff small:
+
+```bash
+# Update a single gem against the next Gemfile, leaving everything else pinned
+BUNDLE_GEMFILE=Gemfile.next bundle update rails --conservative
+```
+
+> [!IMPORTANT]
+> Whenever you update `Gemfile.lock`, update `Gemfile.next.lock` at the same time
+> (run the equivalent command with `BUNDLE_GEMFILE=Gemfile.next`). Keeping the two
+> lockfiles in sync avoids surprising differences between the current and next
+> dependency sets.
 
 ### Conditional code
 
