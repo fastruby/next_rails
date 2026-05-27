@@ -1,6 +1,7 @@
 # main [(unreleased)](https://github.com/fastruby/next_rails/compare/v1.6.0...main)
 
 - [BUGFIX: example](https://github.com/fastruby/next_rails/pull/<number>)
+- [FEATURE: Validate the DeprecationTracker mode at initialization, treating a blank mode as the default `save`](https://github.com/fastruby/next_rails/pull/186)
 
 * Your changes/patches go here.
 
