@@ -154,7 +154,7 @@ class DeprecationTracker
     @deprecation_messages = {}
     @mode = mode ? mode.to_sym : :save
     unless self.class.valid_mode?(@mode)
-      raise ArgumentError, "mode must be one of #{self.class.valid_modes_display}, got: #{mode.inspect}"
+      raise ArgumentError, "mode must be one of: #{self.class.valid_modes_display}. Got: #{mode.inspect}"
     end
     if @mode == :compare && node_index
       raise ArgumentError, "node_index cannot be used with compare mode"

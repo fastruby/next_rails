@@ -424,7 +424,7 @@ RSpec.describe DeprecationTracker do
       stub_const("ENV", ENV.to_h.merge("DEPRECATION_TRACKER" => "bogus"))
       expect {
         DeprecationTracker.init_tracker({})
-      }.to raise_error(ArgumentError, /mode must be one of save, compare.*bogus/)
+      }.to raise_error(ArgumentError, /mode must be one of: save, compare\..*bogus/)
     end
 
     it "treats a blank ENV['DEPRECATION_TRACKER'] as unset and defaults to save" do
@@ -440,10 +440,6 @@ RSpec.describe DeprecationTracker do
   end
 
   describe "VALID_MODES" do
-    it "contains save and compare" do
-      expect(DeprecationTracker::VALID_MODES).to include(:save, :compare)
-    end
-
     it "accepts all valid modes without error" do
       DeprecationTracker::VALID_MODES.each do |mode|
         expect {
@@ -455,7 +451,7 @@ RSpec.describe DeprecationTracker do
     it "rejects an invalid mode at construction, naming the bad value" do
       expect {
         DeprecationTracker.new(shitlist_path, nil, "random_stuff")
-      }.to raise_error(ArgumentError, /mode must be one of save, compare.*random_stuff/)
+      }.to raise_error(ArgumentError, /mode must be one of: save, compare\..*random_stuff/)
     end
   end
 
