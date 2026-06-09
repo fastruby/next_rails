@@ -7,8 +7,8 @@ require_relative "../lib/deprecation_tracker/valid_modes"
 require_relative "../lib/deprecation_tracker/shard_merger"
 
 def run_tests(deprecation_warnings, opts = {})
-  tracker_mode = opts[:tracker_mode]
-  unless DeprecationTracker.valid_mode?(tracker_mode)
+  tracker_mode = DeprecationTracker.sanitize_mode(opts[:tracker_mode])
+  if tracker_mode && !DeprecationTracker.valid_mode?(tracker_mode)
     abort "Invalid --tracker-mode #{tracker_mode.inspect}. Must be one of: #{DeprecationTracker.valid_modes_display}."
   end
   next_mode = opts[:next_mode]
