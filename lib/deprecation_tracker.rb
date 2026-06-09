@@ -10,6 +10,8 @@ require "json"
 # Tracks deprecation warnings, grouped by spec file. After the test run, compare against shitlist of expected
 # deprecation warnings. If anything is added or removed, raise an error with a diff of the changes.
 #
+require_relative "deprecation_tracker/valid_modes"
+
 class DeprecationTracker
   UnexpectedDeprecations = Class.new(StandardError)
 
@@ -75,9 +77,19 @@ class DeprecationTracker
 
   DEFAULT_PATH = "spec/support/deprecation_warning.shitlist.json"
 
+  # Returns the mode as-is, or nil when it is blank. A blank DEPRECATION_TRACKER
+  # (e.g. `DEPRECATION_TRACKER= rspec`) is truthy in Ruby, so callers can use this
+  # to treat an empty value as unset and fall back to the default mode.
+  def self.sanitize_mode(mode)
+    return if mode.nil?
+
+    stripped = mode.to_s.strip
+    stripped.empty? ? nil : stripped
+  end
+
   def self.init_tracker(opts = {})
     shitlist_path = opts[:shitlist_path] || DEFAULT_PATH
-    mode = opts[:mode] || ENV["DEPRECATION_TRACKER"] || :save
+    mode = sanitize_mode(opts[:mode] || ENV["DEPRECATION_TRACKER"]) || :save
     transform_message = opts[:transform_message]
     node_index = opts[:node_index]
     deprecation_tracker = DeprecationTracker.new(shitlist_path, transform_message, mode, node_index: node_index)
@@ -141,6 +153,9 @@ class DeprecationTracker
     @transform_message = transform_message || -> (message) { message }
     @deprecation_messages = {}
     @mode = mode ? mode.to_sym : :save
+    unless self.class.valid_mode?(@mode)
+      raise ArgumentError, "mode must be one of: #{self.class.valid_modes_display}. Got: #{mode.inspect}"
+    end
     if @mode == :compare && node_index
       raise ArgumentError, "node_index cannot be used with compare mode"
     end

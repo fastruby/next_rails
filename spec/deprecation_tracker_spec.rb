@@ -263,13 +263,6 @@ RSpec.describe DeprecationTracker do
       tracker = DeprecationTracker.new(shitlist_path, nil, nil)
       expect(tracker.mode).to eq(:save)
     end
-
-    it "does not save nor compare if mode is invalid" do
-      tracker = DeprecationTracker.new(shitlist_path, nil, "random_stuff")
-      expect(tracker).not_to receive(:save)
-      expect(tracker).not_to receive(:compare)
-      tracker.after_run
-    end
   end
 
   describe "#init_tracker" do
@@ -425,6 +418,61 @@ RSpec.describe DeprecationTracker do
       stub_const("ENV", ENV.to_h.merge("DEPRECATION_TRACKER" => "compare"))
       tracker = DeprecationTracker.init_tracker({})
       expect(tracker.mode).to eq(:compare)
+    end
+
+    it "raises ArgumentError naming the invalid ENV['DEPRECATION_TRACKER'] value" do
+      stub_const("ENV", ENV.to_h.merge("DEPRECATION_TRACKER" => "bogus"))
+      expect {
+        DeprecationTracker.init_tracker({})
+      }.to raise_error(ArgumentError, /mode must be one of: save, compare\..*bogus/)
+    end
+
+    it "treats a blank ENV['DEPRECATION_TRACKER'] as unset and defaults to save" do
+      stub_const("ENV", ENV.to_h.merge("DEPRECATION_TRACKER" => ""))
+      tracker = DeprecationTracker.init_tracker({})
+      expect(tracker.mode).to eq(:save)
+    end
+
+    it "treats a blank opts[:mode] as unset and defaults to save" do
+      tracker = DeprecationTracker.init_tracker(mode: "")
+      expect(tracker.mode).to eq(:save)
+    end
+  end
+
+  describe "VALID_MODES" do
+    it "accepts all valid modes without error" do
+      DeprecationTracker::VALID_MODES.each do |mode|
+        expect {
+          DeprecationTracker.new(shitlist_path, nil, mode)
+        }.not_to raise_error
+      end
+    end
+
+    it "rejects an invalid mode at construction, naming the bad value" do
+      expect {
+        DeprecationTracker.new(shitlist_path, nil, "random_stuff")
+      }.to raise_error(ArgumentError, /mode must be one of: save, compare\..*random_stuff/)
+    end
+  end
+
+  describe ".valid_mode?" do
+    it "returns true for valid modes, as symbol or string" do
+      expect(DeprecationTracker.valid_mode?(:save)).to be_truthy
+      expect(DeprecationTracker.valid_mode?("compare")).to be_truthy
+    end
+
+    it "returns a falsey value for an unknown mode" do
+      expect(DeprecationTracker.valid_mode?("random_stuff")).to be_falsey
+    end
+
+    it "returns a falsey value for nil" do
+      expect(DeprecationTracker.valid_mode?(nil)).to be_falsey
+    end
+  end
+
+  describe ".valid_modes_display" do
+    it "renders the valid modes as a comma-separated string" do
+      expect(DeprecationTracker.valid_modes_display).to eq("save, compare")
     end
   end
 
