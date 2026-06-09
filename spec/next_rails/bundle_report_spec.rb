@@ -6,7 +6,7 @@ require "spec_helper"
 RSpec.describe NextRails::BundleReport do
   describe '.outdated' do
     let(:mock_version) { Struct.new(:version, :age) }
-    let(:mock_gem) { Struct.new(:name, :version, :age, :latest_version, :up_to_date?, :created_at, :sourced_from_git?) }
+    let(:mock_gem) { Struct.new(:name, :version, :age, :latest_version, :up_to_date?, :created_at, :sourced_from_git?, :sourced_locally?) }
     let(:format_str) { '%b %e, %Y' }
     let(:alpha_date) { Date.parse('2022-01-01') }
     let(:alpha_age) { alpha_date.strftime(format_str) }
@@ -18,8 +18,8 @@ RSpec.describe NextRails::BundleReport do
     before do
       allow(NextRails::GemInfo).to receive(:all).and_return(
         [
-          mock_gem.new('alpha', '0.0.1', alpha_age, mock_version.new('0.0.2', bravo_age), false, alpha_date, false),
-          mock_gem.new('bravo', '0.2.0', bravo_age, mock_version.new('0.2.2', charlie_age), false, bravo_date, true)
+          mock_gem.new('alpha', '0.0.1', alpha_age, mock_version.new('0.0.2', bravo_age), false, alpha_date, false, false),
+          mock_gem.new('bravo', '0.2.0', bravo_age, mock_version.new('0.2.2', charlie_age), false, bravo_date, true, false)
         ]
       )
     end
@@ -37,6 +37,7 @@ RSpec.describe NextRails::BundleReport do
         allow($stdout).to receive(:puts).with('')
         allow($stdout).to receive(:puts).with(<<-EO_MULTLINE_STRING)
           #{NextRails::Tint('1').yellow} gems are sourced from git
+          #{NextRails::Tint('0').yellow} gems are sourced from a local path
           #{NextRails::Tint('2').red} of the 2 gems are out-of-date (100%)
         EO_MULTLINE_STRING
       end
@@ -45,10 +46,11 @@ RSpec.describe NextRails::BundleReport do
     context 'when writing JSON output' do
       it 'JSON is correctly formatted' do
         gems = NextRails::GemInfo.all
-        out_of_date_gems = gems.reject(&:up_to_date?).sort_by(&:created_at)
+        sourced_locally = gems.select(&:sourced_locally?)
+        out_of_date_gems = (gems - sourced_locally).reject(&:up_to_date?).sort_by(&:created_at)
         sourced_from_git = gems.select(&:sourced_from_git?)
 
-        expect(NextRails::BundleReport.build_json(out_of_date_gems, gems.count, sourced_from_git.count)).to eq(
+        expect(NextRails::BundleReport.build_json(out_of_date_gems, gems.count, sourced_from_git.count, sourced_locally.count)).to eq(
           {
             outdated_gems: [
               { name: 'alpha', installed_version: '0.0.1', installed_age: alpha_age, latest_version: '0.0.2',
@@ -57,9 +59,36 @@ RSpec.describe NextRails::BundleReport do
                 latest_age: charlie_age }
             ],
             sourced_from_git_count: sourced_from_git.count,
+            sourced_locally_count: sourced_locally.count,
             total_gem_count: gems.count
           }
         )
+      end
+    end
+
+    context 'when a gem is sourced from a local path' do
+      let(:delta_date) { Date.parse('2022-04-04') }
+      let(:delta_age) { delta_date.strftime(format_str) }
+
+      before do
+        allow(NextRails::GemInfo).to receive(:all).and_return(
+          [
+            mock_gem.new('alpha', '0.0.1', alpha_age, mock_version.new('0.0.2', bravo_age), false, alpha_date, false, false),
+            # same name as a public gem, but sourced locally and out-of-date
+            mock_gem.new('delta', '0.1.0', delta_age, mock_version.new('0.1.2', charlie_age), false, delta_date, false, true)
+          ]
+        )
+      end
+
+      it 'excludes the local gem from the out-of-date list and counts it separately' do
+        gems = NextRails::GemInfo.all
+        sourced_locally = gems.select(&:sourced_locally?)
+        out_of_date_gems = (gems - sourced_locally).reject(&:up_to_date?).sort_by(&:created_at)
+
+        result = NextRails::BundleReport.build_json(out_of_date_gems, gems.count, 0, sourced_locally.count)
+
+        expect(result[:outdated_gems].map { |g| g[:name] }).to eq(['alpha'])
+        expect(result[:sourced_locally_count]).to eq(1)
       end
     end
   end

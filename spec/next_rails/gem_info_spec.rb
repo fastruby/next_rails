@@ -74,6 +74,40 @@ RSpec.describe NextRails::GemInfo do
     end
   end
 
+  describe "#sourced_locally?" do
+    let(:source) { nil }
+    let(:spec) do
+      Gem::Specification.new do |s|
+        s.date = release_date
+        s.version = "1.0.0"
+      end.tap { |s| s.source = source }
+    end
+
+    context "when the gem is sourced from a local path" do
+      let(:source) { Bundler::Source::Path.new("path" => "engines/foo") }
+
+      it "is true" do
+        expect(subject.sourced_locally?).to be(true)
+      end
+    end
+
+    context "when the gem is sourced from git" do
+      let(:source) { Bundler::Source::Git.new("uri" => "https://example.com/foo.git") }
+
+      it "is false (git is reported separately)" do
+        expect(subject.sourced_locally?).to be(false)
+      end
+    end
+
+    context "when the gem is sourced from rubygems" do
+      let(:source) { Bundler::Source::Rubygems.new }
+
+      it "is false" do
+        expect(subject.sourced_locally?).to be(false)
+      end
+    end
+  end
+
   describe "#find_latest_compatible" do
     let(:mock_gem) { Struct.new(:name, :version) }
 
