@@ -80,7 +80,8 @@ RSpec.describe NextRails::GemInfo do
       Gem::Specification.new do |s|
         s.date = release_date
         s.version = "1.0.0"
-      end.tap { |s| s.source = source }
+        s.source = source
+      end
     end
 
     context "when the gem is sourced from a local path" do

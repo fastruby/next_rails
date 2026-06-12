@@ -67,6 +67,9 @@ module NextRails
     end
 
     def sourced_locally?
+      # Bundler defines Source::Path and patches Gem::Specification#source to return the
+      # gem's real source. Without Bundler loaded, #source is RubyGems' own and returns a
+      # Gem::Source::Installed, so no path source can exist; treat the gem as not local.
       return false unless defined?(Bundler::Source::Path)
 
       source = gem_specification.source
