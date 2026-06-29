@@ -25,32 +25,22 @@ RSpec.describe NextRails::BundleReport do
     end
 
     context 'when writing human-readable output' do
-      #subject { described_class.outdated }
+      it 'prints each out-of-date gem and a footer with the source counts', :aggregate_failures do
+        output = with_captured_stdout { described_class.outdated }
 
-      it 'invokes $stdout.puts properly', :aggregate_failures do
-        allow($stdout)
-          .to receive(:puts)
-          .with("#{NextRails::Tint('alpha 0.0.1').bold.white}: released #{alpha_age} (latest version, 0.0.2, released #{bravo_age})\n")
-        allow($stdout)
-          .to receive(:puts)
-          .with("#{NextRails::Tint('bravo 0.2.0').bold.white}: released #{bravo_age} (latest version, 0.2.2, released #{charlie_age})\n")
-        allow($stdout).to receive(:puts).with('')
-        allow($stdout).to receive(:puts).with(<<-EO_MULTLINE_STRING)
-          #{NextRails::Tint('1').yellow} gems are sourced from git
-          #{NextRails::Tint('0').yellow} gems are sourced from a local path
-          #{NextRails::Tint('2').red} of the 2 gems are out-of-date (100%)
-        EO_MULTLINE_STRING
+        expect(output).to include("#{NextRails::Tint('alpha 0.0.1').bold.white}: released #{alpha_age} (latest version, 0.0.2, released #{bravo_age})")
+        expect(output).to include("#{NextRails::Tint('bravo 0.2.0').bold.white}: released #{bravo_age} (latest version, 0.2.2, released #{charlie_age})")
+        expect(output).to include("#{NextRails::Tint('1').yellow} gems are sourced from git")
+        expect(output).to include("#{NextRails::Tint('0').yellow} gems are sourced from a local path")
+        expect(output).to include("#{NextRails::Tint('2').red} of the 2 gems are out-of-date (100%)")
       end
     end
 
     context 'when writing JSON output' do
       it 'JSON is correctly formatted' do
-        gems = NextRails::GemInfo.all
-        sourced_locally = gems.select(&:sourced_locally?)
-        out_of_date_gems = (gems - sourced_locally).reject(&:up_to_date?).sort_by(&:created_at)
-        sourced_from_git = gems.select(&:sourced_from_git?)
+        output = with_captured_stdout { described_class.outdated('json') }
 
-        expect(NextRails::BundleReport.build_json(out_of_date_gems, gems.count, sourced_from_git.count, sourced_locally.count)).to eq(
+        expect(JSON.parse(output, symbolize_names: true)).to eq(
           {
             outdated_gems: [
               { name: 'alpha', installed_version: '0.0.1', installed_age: alpha_age, latest_version: '0.0.2',
@@ -58,9 +48,9 @@ RSpec.describe NextRails::BundleReport do
               { name: 'bravo', installed_version: '0.2.0', installed_age: bravo_age, latest_version: '0.2.2',
                 latest_age: charlie_age }
             ],
-            sourced_from_git_count: sourced_from_git.count,
-            sourced_locally_count: sourced_locally.count,
-            total_gem_count: gems.count
+            sourced_from_git_count: 1,
+            sourced_locally_count: 0,
+            total_gem_count: 2
           }
         )
       end
@@ -80,14 +70,11 @@ RSpec.describe NextRails::BundleReport do
         )
       end
 
-      it 'excludes the local gem from the out-of-date list and counts it separately' do
-        gems = NextRails::GemInfo.all
-        sourced_locally = gems.select(&:sourced_locally?)
-        out_of_date_gems = (gems - sourced_locally).reject(&:up_to_date?).sort_by(&:created_at)
+      it 'excludes the local gem from the out-of-date list and counts it separately', :aggregate_failures do
+        output = with_captured_stdout { described_class.outdated('json') }
+        result = JSON.parse(output, symbolize_names: true)
 
-        result = NextRails::BundleReport.build_json(out_of_date_gems, gems.count, 0, sourced_locally.count)
-
-        expect(result[:outdated_gems].map { |g| g[:name] }).to eq(['alpha'])
+        expect(result[:outdated_gems].map { |gem| gem[:name] }).to eq(['alpha'])
         expect(result[:sourced_locally_count]).to eq(1)
       end
     end
