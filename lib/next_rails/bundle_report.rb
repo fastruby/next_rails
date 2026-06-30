@@ -63,22 +63,27 @@ module NextRails
 
     def outdated(format = nil)
       gems = NextRails::GemInfo.all
-      out_of_date_gems = gems.reject(&:up_to_date?).sort_by(&:created_at)
+      sourced_locally = gems.select(&:sourced_locally?)
       sourced_from_git = gems.select(&:sourced_from_git?)
 
+      # Locally-sourced gems (e.g. `path:` engines) are excluded from the
+      # out-of-date check: looking them up by name on rubygems can match an
+      # unrelated public gem with the same name and report a bogus upgrade.
+      out_of_date_gems = (gems - sourced_locally).reject(&:up_to_date?).sort_by(&:created_at)
+
       if format == 'json'
-        output_to_json(out_of_date_gems, gems.count, sourced_from_git.count)
+        output_to_json(out_of_date_gems, gems.count, sourced_from_git.count, sourced_locally.count)
       else
-        output_to_stdout(out_of_date_gems, gems.count, sourced_from_git.count)
+        output_to_stdout(out_of_date_gems, gems.count, sourced_from_git.count, sourced_locally.count)
       end
     end
 
-    def output_to_json(out_of_date_gems, total_gem_count, sourced_from_git_count)
-      obj = build_json(out_of_date_gems, total_gem_count, sourced_from_git_count)
+    def output_to_json(out_of_date_gems, total_gem_count, sourced_from_git_count, sourced_locally_count)
+      obj = build_json(out_of_date_gems, total_gem_count, sourced_from_git_count, sourced_locally_count)
       puts JSON.pretty_generate(obj)
     end
 
-    def build_json(out_of_date_gems, total_gem_count, sourced_from_git_count)
+    def build_json(out_of_date_gems, total_gem_count, sourced_from_git_count, sourced_locally_count)
       output = Hash.new { [] }
       out_of_date_gems.each do |gem|
         output[:outdated_gems] += [
@@ -95,12 +100,13 @@ module NextRails
       output.merge(
         {
           sourced_from_git_count: sourced_from_git_count,
+          sourced_locally_count: sourced_locally_count,
           total_gem_count: total_gem_count
         }
       )
     end
 
-    def output_to_stdout(out_of_date_gems, total_gem_count, sourced_from_git_count)
+    def output_to_stdout(out_of_date_gems, total_gem_count, sourced_from_git_count, sourced_locally_count)
       out_of_date_gems.each do |gem|
         header = "#{gem.name} #{gem.version}"
 
@@ -112,6 +118,7 @@ module NextRails
       percentage_out_of_date = ((out_of_date_gems.count / total_gem_count.to_f) * 100).round
       footer = <<-MESSAGE
         #{NextRails::Tint(sourced_from_git_count.to_s).yellow} gems are sourced from git
+        #{NextRails::Tint(sourced_locally_count.to_s).yellow} gems are sourced from a local path
         #{NextRails::Tint(out_of_date_gems.count.to_s).red} of the #{total_gem_count} gems are out-of-date (#{percentage_out_of_date}%)
       MESSAGE
 
