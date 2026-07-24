@@ -1,5 +1,9 @@
 require "next_rails/tint"
 require "json"
+# save/diff use these; they happen to be loaded under RSpec/Minitest, but not
+# necessarily when the tracker runs via `rails runner` in a slim app.
+require "tempfile"
+require "fileutils"
 
 # A shitlist for deprecation warnings during test runs. It has two modes: "save" and "compare"
 #

@@ -55,9 +55,13 @@ elsif defined?(ActiveSupport) && defined?(ActiveSupport::Deprecation)
   ActiveSupport::Deprecation.disallowed_behavior = :stderr if ActiveSupport::Deprecation.respond_to?(:disallowed_behavior=)
 end
 
+# transform_message strips the absolute Rails.root prefix (the same gsub the
+# RSpec/Minitest setups use) so the shitlist stores project-relative paths —
+# committable and stable across machines instead of "/Users/.../app/...".
 tracker = DeprecationTracker.init_tracker(
   :shitlist_path => ENV.fetch("DEPRECATION_BOOT_OUTPUT"),
-  :mode => "save"
+  :mode => "save",
+  :transform_message => lambda { |message| message.gsub("#{Rails.root}/", "") }
 )
 tracker.bucket = "boot"
 Rails.application.eager_load!

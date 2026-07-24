@@ -2,6 +2,9 @@
 
 require "spec_helper"
 
+require "tmpdir"
+require "fileutils"
+require "rbconfig"
 require_relative "../../lib/deprecation_tracker/boot_capture"
 
 RSpec.describe DeprecationTracker::BootCapture do
@@ -75,6 +78,12 @@ RSpec.describe DeprecationTracker::BootCapture do
       expect(script).to include("ENV.fetch(\"DEPRECATION_BOOT_OUTPUT\")")
     end
 
+    it "stores project-relative paths by stripping Rails.root (committable shitlist)" do
+      script = File.read(described_class::RUNNER_PATH)
+      expect(script).to include("transform_message")
+      expect(script).to include('gsub("#{Rails.root}/"')
+    end
+
     it "refuses with a distinct exit code, before eager_load!, when the env eager-loads at boot" do
       # If config.eager_load is true, eager-load already ran before the tracker
       # attached — the warnings are lost, so refuse rather than say "clean," and
@@ -94,6 +103,25 @@ RSpec.describe DeprecationTracker::BootCapture do
       expect(script).to include("behavior = :stderr")
       expect(script).to include("disallowed_behavior = :stderr")
       expect(script.index("silenced = false")).to be < script.index("DeprecationTracker.init_tracker")
+    end
+  end
+
+  describe "DeprecationTracker save outside a test process (boot runs it via `rails runner`)" do
+    it "saves from a bare Ruby process that hasn't loaded the stdlib RSpec pulls in" do
+      # rails runner in a slim app is such a process; save uses Tempfile/FileUtils.
+      # A subprocess is the only way to prove the requires, since RSpec has already
+      # loaded them here. Fails with NameError before the requires were added.
+      lib = File.expand_path("../../lib", __dir__)
+      path = File.join(Dir.tmpdir, "nr-boot-#{Process.pid}-#{rand(100_000)}.json")
+      script = "require 'deprecation_tracker'; " \
+        "t = DeprecationTracker.new(#{path.inspect}, nil, :save); " \
+        "t.bucket = 'boot'; t.add('x'); t.after_run"
+      begin
+        expect(system(RbConfig.ruby, "-I#{lib}", "-e", script)).to be(true)
+        expect(File.exist?(path)).to be(true)
+      ensure
+        FileUtils.rm_f(path)
+      end
     end
   end
 end
