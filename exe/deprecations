@@ -47,17 +47,17 @@ end
 def run_boot(opts = {})
   next_mode = !!opts[:next]
   output_path = opts[:output] || DeprecationTracker::BootCapture.default_output_path(next_mode: next_mode)
+  # Write to a partial file and only replace the real output on success, so a boot
+  # that fails or refuses never destroys a previous good capture. The partial's
+  # presence afterward also proves THIS boot wrote it (the runner only writes once
+  # it reaches after_run), so a missing partial means the app failed to boot.
+  partial_path = "#{output_path}.partial"
 
   FileUtils.mkdir_p(File.dirname(output_path))
-
-  # Remove any prior result so its presence afterward proves THIS boot wrote it.
-  # The runner only writes the shitlist once it reaches `after_run`, so a missing
-  # (or non-zero-exit) result means the app failed to boot — which must not be
-  # mistaken for "no deprecations."
-  FileUtils.rm_f(output_path)
+  FileUtils.rm_f(partial_path) # clear a stale partial, never the real output
 
   command = DeprecationTracker::BootCapture.boot_command(
-    output_path: output_path,
+    output_path: partial_path,
     next_mode: next_mode
   )
   puts DeprecationTracker::BootCapture.command_display(command)
@@ -67,15 +67,20 @@ def run_boot(opts = {})
   # The runner refused because the env eager-loads at boot; it already printed the
   # specific explanation, so don't bury it under the generic guess below.
   if status && status.exitstatus == DeprecationTracker::BootCapture::EAGER_LOAD_EXIT
+    FileUtils.rm_f(partial_path)
     exit status.exitstatus
   end
 
-  if !booted || !File.exist?(output_path)
+  if !booted || !File.exist?(partial_path)
+    FileUtils.rm_f(partial_path)
     STDERR.puts Rainbow("Boot did not complete — the app failed to load (see the error above).").red
     STDERR.puts "No shitlist was written, so this is NOT a clean result. A common cause is a missing"
     STDERR.puts "config/database.yml or unset env in this checkout. Fix the boot error and re-run."
     exit 1
   end
+
+  # Success: atomically replace the previous capture (same dir, so it's a rename).
+  FileUtils.mv(partial_path, output_path)
 
   # The runner wrote an ordinary shitlist; reuse print_info to summarize it.
   deprecation_warnings = JSON.parse(File.read(output_path))
