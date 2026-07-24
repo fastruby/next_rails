@@ -62,6 +62,13 @@ def run_boot(opts = {})
   )
   puts command
   booted = system(command)
+  status = $?
+
+  # The runner refused because the env eager-loads at boot; it already printed the
+  # specific explanation, so don't bury it under the generic guess below.
+  if status && status.exitstatus == DeprecationTracker::BootCapture::EAGER_LOAD_EXIT
+    exit status.exitstatus
+  end
 
   if !booted || !File.exist?(output_path)
     STDERR.puts Rainbow("Boot did not complete — the app failed to load (see the error above).").red
@@ -113,6 +120,8 @@ option_parser = OptionParser.new do |opts|
         declaration warnings the per-test tracker never sees. Writes an ordinary
         shitlist (bucket "boot") under spec/support and summarizes it like `info`.
         A boot failure is reported as such (exit 1), never as "no deprecations."
+        Needs config.eager_load = false (it passes CI= for the stock Rails
+        template); refuses if the app eager-loads at boot.
 
     Options:
   MESSAGE

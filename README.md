@@ -206,6 +206,8 @@ The result is written to `spec/support/deprecation_warning.boot.shitlist.json` (
 
 > [!NOTE]
 > Use `--next` only once the next bundle already boots cleanly (dual boot set up and breaking changes fixed — see [Dual Boot](#dual-boot)); that's when it captures the next version's warnings in bulk. If the app can't boot, `boot` exits non-zero and says so rather than reporting "no deprecations."
+>
+> Capture must attach *before* eager-load, so the command needs `config.eager_load = false`. It passes `CI=` to keep the stock Rails 7.1+ test env (`config.eager_load = ENV["CI"].present?`) from eager-loading at boot; if your app hardcodes `config.eager_load = true`, `boot` refuses and tells you to set it false for the run.
 
 ### Parallel CI support
 
