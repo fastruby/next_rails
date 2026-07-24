@@ -62,7 +62,11 @@ class DeprecationTracker
     # * BUNDLE_GEMFILE=Gemfile.next selects the next bundle (what `bin/next` wraps,
     #   and it works in projects that never generated the shim).
     # * RAILS_ENV=test skips dev-only initializers.
-    def self.boot_command(output_path:, next_mode: false)
+    # output_path is required, but declared as an optional kwarg + guard rather
+    # than a required kwarg (`output_path:`) so the file parses on Ruby 2.0 — the
+    # gem's stated floor, which the rest of the code keeps to.
+    def self.boot_command(output_path: nil, next_mode: false)
+      raise ArgumentError, "output_path is required" unless output_path
       env = { "CI" => nil, "RAILS_ENV" => "test", OUTPUT_ENV => output_path.to_s }
       env["BUNDLE_GEMFILE"] = "Gemfile.next" if next_mode
       [env, "bundle", "exec", "rails", "runner", RUNNER_PATH]

@@ -27,10 +27,16 @@ end
 
 def print_info(deprecation_warnings, opts = {})
   verbose = !!opts[:verbose]
-  frequency_by_message = deprecation_warnings.each_with_object({}) do |(test_file, messages), hash|
+  # Bucket label for the verbose line. Test-run shitlists bucket by spec file
+  # ("Test files"); a boot shitlist buckets under the single synthetic "boot".
+  # Derive it from the data so BOTH call sites (run_boot's own summary and a later
+  # `info --path <boot shitlist>`) label it correctly without the caller opting in.
+  bucket_label = opts[:bucket_label] ||
+    (deprecation_warnings.keys == ["boot"] ? "Source" : "Test files")
+  frequency_by_message = deprecation_warnings.each_with_object({}) do |(bucket, messages), hash|
     messages.each do |message|
-      hash[message] ||= { test_files: Set.new, occurrences: 0 }
-      hash[message][:test_files] << test_file
+      hash[message] ||= { buckets: Set.new, occurrences: 0 }
+      hash[message][:buckets] << bucket
       hash[message][:occurrences] += 1
     end
   end.sort_by {|message, data| data[:occurrences] }.reverse.to_h
@@ -38,7 +44,7 @@ def print_info(deprecation_warnings, opts = {})
   puts Rainbow("Ten most common deprecation warnings:").underline
   frequency_by_message.take(10).each do |message, data|
     puts Rainbow("Occurrences: #{data.fetch(:occurrences)}").bold
-    puts "Test files: #{data.fetch(:test_files).to_a.join(" ")}" if verbose
+    puts "#{bucket_label}: #{data.fetch(:buckets).to_a.join(" ")}" if verbose
     puts Rainbow(message).red
     puts "----------"
   end
@@ -157,7 +163,7 @@ option_parser = OptionParser.new do |opts|
     options[:output] = output
   end
 
-  opts.on("--path PATH", "info/run/merge: read this shitlist instead of the default (overrides --next). Intended for `info` — a boot shitlist buckets under 'boot', not test files") do |read_path|
+  opts.on("--path PATH", "info/merge: read this shitlist instead of the default (overrides --next). Intended for `info` — a boot shitlist buckets under 'boot', not test files") do |read_path|
     options[:path] = read_path
   end
 
@@ -181,12 +187,21 @@ when "merge"
   total_messages = result.values.map(&:size).reduce(0, :+)
   puts "Merged #{shards} shard files into #{path} (#{result.size} buckets, #{total_messages} deprecation messages)"
 when "boot"
+  if options[:pattern]
+    abort "--pattern is not supported with 'boot'. Capture, then filter the saved shitlist: " \
+      "deprecations info --path <boot shitlist> --pattern <regex>"
+  end
   run_boot(
     next: options[:next],
     output: options[:output],
     verbose: options[:verbose]
   )
 when "run", "info"
+  if options[:mode] == "run" && options[:path]
+    abort "--path can't be combined with 'run': its buckets may not be spec files (e.g. a boot shitlist buckets under 'boot'). Use --path with info instead."
+  end
+  abort "No shitlist found at #{path}." unless File.exist?(path)
+
   pattern_string = options.fetch(:pattern, ".+")
   pattern = /#{pattern_string}/
 

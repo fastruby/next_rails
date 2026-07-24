@@ -27,6 +27,10 @@ RSpec.describe DeprecationTracker::BootCapture do
       expect(argv).not_to include("bin/next")
     end
 
+    it "requires output_path (declared 2.0-safe: optional kwarg + guard, not a required kwarg)" do
+      expect { described_class.boot_command }.to raise_error(ArgumentError, /output_path/)
+    end
+
     it "cannot be shell-injected through --output (value stays a single env entry)" do
       malicious = "x.json; rm -rf foo"
       env, *argv = described_class.boot_command(output_path: malicious)
