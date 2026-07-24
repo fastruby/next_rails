@@ -3,6 +3,7 @@
 - [BUGFIX: example](https://github.com/fastruby/next_rails/pull/<number>)
 - [FEATURE: Validate the DeprecationTracker mode at initialization, treating a blank mode as the default `save`](https://github.com/fastruby/next_rails/pull/186)
 - [BUGFIX: `bundle_report outdated` no longer confuses a locally-sourced (`path:`) gem with a same-named public gem on rubygems; local gems are excluded from the out-of-date check and counted separately](https://github.com/fastruby/next_rails/pull/189)
+- [FEATURE: Add `deprecations boot` to capture load-time (eager-load) deprecation warnings the per-test tracker misses, such as association/scope/callback declaration warnings](https://github.com/fastruby/next_rails/pull/194)
 
 * Your changes/patches go here.
 
