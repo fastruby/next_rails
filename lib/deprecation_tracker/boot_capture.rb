@@ -47,21 +47,36 @@ class DeprecationTracker
     # registers the framework deprecators the runner attaches to) and runs the
     # gem's runner script.
     #
-    # `CI=` blanks the CI env var for this one boot. The Rails 7.1+ generated
-    # test.rb sets `config.eager_load = ENV["CI"].present?`, so on CI the app
-    # would eager-load at boot — before the tracker can attach — and the runner
-    # would have to refuse. Forcing CI blank keeps that template's eager_load off
-    # so capture works even on CI; apps that hardcode `eager_load = true` are
-    # still caught by the runner's guard.
+    # Returned as `[env_hash, *argv]` for `system(*command)` — NOT a shell string —
+    # so an operator-supplied `output_path` (via --output) and the gem's RUNNER_PATH
+    # can never be word-split or interpreted by a shell (e.g. a path with spaces, or
+    # `--output 'x.json; rm -rf foo'`). Values that would have needed quoting in a
+    # shell string are ordinary array elements / env values here.
     #
-    # The next bundle is selected with BUNDLE_GEMFILE=Gemfile.next (what `bin/next`
-    # wraps, and it works in projects that never generated the shim). RAILS_ENV=test
-    # skips dev-only initializers.
+    # Env keys:
+    # * CI => nil unsets CI for this one boot. The Rails 7.1+ generated test.rb sets
+    #   `config.eager_load = ENV["CI"].present?`, so on CI the app would eager-load
+    #   at boot — before the tracker can attach — and the runner would have to refuse.
+    #   Unsetting CI keeps that template's eager_load off so capture works even on CI;
+    #   apps that hardcode `eager_load = true` are still caught by the runner's guard.
+    # * BUNDLE_GEMFILE=Gemfile.next selects the next bundle (what `bin/next` wraps,
+    #   and it works in projects that never generated the shim).
+    # * RAILS_ENV=test skips dev-only initializers.
     def self.boot_command(output_path:, next_mode: false)
-      env = "CI= RAILS_ENV=test"
-      env += " BUNDLE_GEMFILE=Gemfile.next" if next_mode
-      env += " #{OUTPUT_ENV}=#{output_path}"
-      "#{env} bundle exec rails runner #{RUNNER_PATH}"
+      env = { "CI" => nil, "RAILS_ENV" => "test", OUTPUT_ENV => output_path.to_s }
+      env["BUNDLE_GEMFILE"] = "Gemfile.next" if next_mode
+      [env, "bundle", "exec", "rails", "runner", RUNNER_PATH]
+    end
+
+    # A human-readable, shell-like rendering of `boot_command` for logging. Not
+    # executed — `system(*boot_command(...))` runs the real thing without a shell.
+    # Unset (nil) env vars are omitted rather than shown as `KEY=`, which would
+    # read as "blanked" and contradict the unset semantics the command relies on.
+    def self.command_display(command)
+      env, argv = command[0], command[1..-1]
+      env_str = env.reject { |_key, value| value.nil? }.map { |key, value| "#{key}=#{value}" }.join(" ")
+      parts = env_str.empty? ? argv : [env_str] + argv
+      parts.join(" ")
     end
   end
 end

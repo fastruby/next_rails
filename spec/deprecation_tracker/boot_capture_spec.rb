@@ -6,21 +6,42 @@ require_relative "../../lib/deprecation_tracker/boot_capture"
 
 RSpec.describe DeprecationTracker::BootCapture do
   describe ".boot_command" do
-    it "runs the gem's runner script via rails runner under RAILS_ENV=test with CI blanked" do
-      command = described_class.boot_command(output_path: "spec/support/deprecation_warning.boot.shitlist.json")
-      # CI= keeps the stock Rails 7.1+ template from eager-loading at boot.
-      expect(command).to start_with("CI= RAILS_ENV=test ")
+    it "returns an env hash + argv for system (no shell), running the gem runner" do
+      env, *argv = described_class.boot_command(output_path: "spec/support/deprecation_warning.boot.shitlist.json")
       # `rails runner` fully boots the app, which registers the deprecators the runner attaches to.
-      expect(command).to include("bundle exec rails runner #{described_class::RUNNER_PATH}")
-      expect(command).to include("DEPRECATION_BOOT_OUTPUT=spec/support/deprecation_warning.boot.shitlist.json")
+      expect(argv).to eq(["bundle", "exec", "rails", "runner", described_class::RUNNER_PATH])
+      expect(env["RAILS_ENV"]).to eq("test")
+      expect(env["DEPRECATION_BOOT_OUTPUT"]).to eq("spec/support/deprecation_warning.boot.shitlist.json")
+      # CI unset (nil) keeps the stock Rails 7.1+ template from eager-loading at boot.
+      expect(env).to have_key("CI")
+      expect(env["CI"]).to be_nil
     end
 
     it "selects the next bundle with BUNDLE_GEMFILE, not bin/next" do
       # bin/next may not exist in every project; BUNDLE_GEMFILE is what it wraps.
-      command = described_class.boot_command(output_path: "out.json", next_mode: true)
-      expect(command).to include("BUNDLE_GEMFILE=Gemfile.next")
-      expect(command).to include("bundle exec rails runner")
-      expect(command).not_to include("bin/next")
+      env, *argv = described_class.boot_command(output_path: "out.json", next_mode: true)
+      expect(env["BUNDLE_GEMFILE"]).to eq("Gemfile.next")
+      expect(argv).not_to include("bin/next")
+    end
+
+    it "cannot be shell-injected through --output (value stays a single env entry)" do
+      malicious = "x.json; rm -rf foo"
+      env, *argv = described_class.boot_command(output_path: malicious)
+      # The value is passed as an env var, never spliced into a shell string.
+      expect(env["DEPRECATION_BOOT_OUTPUT"]).to eq(malicious)
+      expect(argv).to eq(["bundle", "exec", "rails", "runner", described_class::RUNNER_PATH])
+      expect(argv.join(" ")).not_to include("rm -rf")
+    end
+  end
+
+  describe ".command_display" do
+    it "renders a readable line and omits unset (nil) env vars" do
+      display = described_class.command_display(described_class.boot_command(output_path: "out.json"))
+      # CI is unset (nil); don't render it as a misleading "CI=" blank assignment.
+      expect(display).not_to include("CI=")
+      expect(display).to include("RAILS_ENV=test")
+      expect(display).to include("DEPRECATION_BOOT_OUTPUT=out.json")
+      expect(display).to include("bundle exec rails runner #{described_class::RUNNER_PATH}")
     end
   end
 

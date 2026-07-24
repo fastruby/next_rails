@@ -60,8 +60,8 @@ def run_boot(opts = {})
     output_path: output_path,
     next_mode: next_mode
   )
-  puts command
-  booted = system(command)
+  puts DeprecationTracker::BootCapture.command_display(command)
+  booted = system(*command) # array form: no shell, so output_path can't inject
   status = $?
 
   # The runner refused because the env eager-loads at boot; it already printed the
@@ -122,7 +122,7 @@ option_parser = OptionParser.new do |opts|
         before the tracker attaches and are printed, not collected. Writes an ordinary
         shitlist (bucket "boot") under spec/support and summarizes it like `info`.
         A boot failure is reported as such (exit 1), never as "no deprecations."
-        Needs config.eager_load = false (it passes CI= for the stock Rails
+        Needs config.eager_load = false (it unsets CI for the stock Rails
         template); refuses if the app eager-loads at boot.
 
     Options:
