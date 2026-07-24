@@ -9,7 +9,7 @@ A toolkit to upgrade your next Rails application. It helps you set up **dual boo
 ## Features
 
 - **Dual Boot** — Run your app against two sets of dependencies (e.g. Rails 7.1 and Rails 7.2) side by side
-- **Deprecation Tracking** — Capture and compare deprecation warnings across test runs (RSpec & Minitest), plus load-time warnings via `deprecations boot`
+- **Deprecation Tracking** — Capture and compare deprecation warnings across test runs (RSpec & Minitest), plus eager-load-time warnings via `deprecations boot`
 - **Bundle Report** — Check gem compatibility with a target Rails or Ruby version
 - **Ruby Check** — Find the minimum Ruby version compatible with a target Rails version
 
@@ -192,10 +192,10 @@ DEPRECATION_TRACKER=compare rspec
 
 ### Boot-time deprecations
 
-The test-run tracker above attaches per-example, so it only sees deprecations raised *while a test runs*. It structurally misses the deprecations that fire when the app **loads** — association / scope / callback declaration warnings that fire when a class body is evaluated, which no test necessarily triggers. `deprecations boot` catches those: it boots the app and eager-loads it with the tracker already listening, then writes an ordinary shitlist you can read with `info`.
+The test-run tracker above attaches per-example, so it only sees deprecations raised *while a test runs*. It structurally misses the deprecations that fire when the app **eager-loads** — association / scope / callback declaration warnings that fire when a class body is evaluated, which no test necessarily triggers. `deprecations boot` catches those: it boots the app and eager-loads it with the tracker already listening, then writes an ordinary shitlist you can read with `info`. (Warnings emitted earlier, during gem require or initializers, fire before the tracker attaches and are out of scope.)
 
 ```bash
-# Capture load-time deprecations on the current bundle
+# Capture eager-load-time deprecations on the current bundle
 deprecations boot
 
 # ...or on the next bundle (dual boot). This just prepends BUNDLE_GEMFILE=Gemfile.next.
@@ -273,7 +273,7 @@ deprecations info
 deprecations info --pattern "ActiveRecord::Base"
 deprecations merge --delete-shards
 deprecations run
-deprecations boot          # capture load-time deprecations (see "Boot-time deprecations")
+deprecations boot          # capture eager-load-time deprecations (see "Boot-time deprecations")
 deprecations --next boot   # same, on the next bundle
 deprecations --help
 ```

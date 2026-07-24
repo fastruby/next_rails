@@ -1,14 +1,19 @@
 # frozen_string_literal: true
 
 class DeprecationTracker
-  # Capture deprecation warnings emitted at BOOT time -- while the app runs its
-  # initializers and eager-loads its classes -- rather than during a test run.
+  # Capture deprecation warnings emitted while the app EAGER-LOADS its classes --
+  # the association / scope / callback declaration warnings that fire when a class
+  # body is evaluated -- rather than during a test run.
   #
-  # This is the one deprecation surface the test-run tracker structurally misses.
-  # `track_rspec` / `track_minitest` attach per-example, so a warning that fires
-  # when a class body is evaluated (association / scope / callback declarations)
-  # never reaches them. Eager-loading the whole app with the tracker already
-  # listening surfaces exactly those.
+  # This is the one such surface the test-run tracker structurally misses:
+  # `track_rspec` / `track_minitest` attach per-example, so a warning that fires at
+  # class-body-evaluation time never reaches them. Eager-loading the whole app with
+  # the tracker already listening surfaces exactly those.
+  #
+  # Scope: warnings emitted EARLIER in boot -- during `Bundler.require` or the
+  # framework/app initializers, before `rails runner` hands control to the runner
+  # script and the tracker attaches -- are NOT captured. Only eager-load-time (and
+  # later) warnings are in scope.
   #
   # It deliberately does NOT reimplement any capture logic. `boot_capture_runner.rb`
   # drives the existing DeprecationTracker (init_tracker installs the

@@ -80,7 +80,7 @@ def run_boot(opts = {})
   # The runner wrote an ordinary shitlist; reuse print_info to summarize it.
   deprecation_warnings = JSON.parse(File.read(output_path))
   if deprecation_warnings.empty?
-    puts Rainbow("Boot completed cleanly — no deprecation warnings at load time.").green
+    puts Rainbow("Eager-load completed cleanly — no deprecation warnings while loading the app's classes.").green
     return
   end
 
@@ -116,8 +116,10 @@ option_parser = OptionParser.new do |opts|
 
       boot
         Boot the app and eager-load it with DeprecationTracker listening, to catch
-        the deprecations that fire at load time — association/scope/callback
-        declaration warnings the per-test tracker never sees. Writes an ordinary
+        the deprecations that fire as class bodies are evaluated — association/
+        scope/callback declaration warnings the per-test tracker never sees.
+        Scope is eager-load only: warnings from gem requires and initializers fire
+        before the tracker attaches and are printed, not collected. Writes an ordinary
         shitlist (bucket "boot") under spec/support and summarizes it like `info`.
         A boot failure is reported as such (exit 1), never as "no deprecations."
         Needs config.eager_load = false (it passes CI= for the stock Rails
