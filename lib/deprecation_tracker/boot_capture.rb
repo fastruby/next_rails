@@ -59,8 +59,11 @@ class DeprecationTracker
     #   at boot — before the tracker can attach — and the runner would have to refuse.
     #   Unsetting CI keeps that template's eager_load off so capture works even on CI;
     #   apps that hardcode `eager_load = true` are still caught by the runner's guard.
-    # * BUNDLE_GEMFILE=Gemfile.next selects the next bundle (what `bin/next` wraps,
-    #   and it works in projects that never generated the shim).
+    # * The next bundle sets BUNDLE_GEMFILE=Gemfile.next AND BUNDLE_CACHE_PATH=
+    #   vendor/cache.next — the pair `next`/`gem-next-diff` always use together
+    #   (exe/next.sh, exe/gem-next-diff). Setting only the Gemfile would resolve
+    #   against the current bundle's vendored cache. The current bundle leaves both
+    #   at Bundler's defaults (Gemfile, vendor/cache).
     # * RAILS_ENV=test skips dev-only initializers.
     # output_path is required, but declared as an optional kwarg + guard rather
     # than a required kwarg (`output_path:`) so the file parses on Ruby 2.0 — the
@@ -68,7 +71,10 @@ class DeprecationTracker
     def self.boot_command(output_path: nil, next_mode: false)
       raise ArgumentError, "output_path is required" unless output_path
       env = { "CI" => nil, "RAILS_ENV" => "test", OUTPUT_ENV => output_path.to_s }
-      env["BUNDLE_GEMFILE"] = "Gemfile.next" if next_mode
+      if next_mode
+        env["BUNDLE_GEMFILE"] = "Gemfile.next"
+        env["BUNDLE_CACHE_PATH"] = "vendor/cache.next"
+      end
       [env, "bundle", "exec", "rails", "runner", RUNNER_PATH]
     end
 

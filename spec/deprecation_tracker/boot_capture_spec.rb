@@ -20,11 +20,19 @@ RSpec.describe DeprecationTracker::BootCapture do
       expect(env["CI"]).to be_nil
     end
 
-    it "selects the next bundle with BUNDLE_GEMFILE, not bin/next" do
-      # bin/next may not exist in every project; BUNDLE_GEMFILE is what it wraps.
+    it "selects the next bundle with BUNDLE_GEMFILE + BUNDLE_CACHE_PATH, not bin/next" do
+      # bin/next may not exist in every project; BUNDLE_GEMFILE is what it wraps,
+      # and `next`/gem-next-diff always pair it with BUNDLE_CACHE_PATH=vendor/cache.next.
       env, *argv = described_class.boot_command(output_path: "out.json", next_mode: true)
       expect(env["BUNDLE_GEMFILE"]).to eq("Gemfile.next")
+      expect(env["BUNDLE_CACHE_PATH"]).to eq("vendor/cache.next")
       expect(argv).not_to include("bin/next")
+    end
+
+    it "leaves BUNDLE_GEMFILE and BUNDLE_CACHE_PATH at Bundler defaults for the current bundle" do
+      env, * = described_class.boot_command(output_path: "out.json")
+      expect(env).not_to have_key("BUNDLE_GEMFILE")
+      expect(env).not_to have_key("BUNDLE_CACHE_PATH")
     end
 
     it "requires output_path (declared 2.0-safe: optional kwarg + guard, not a required kwarg)" do

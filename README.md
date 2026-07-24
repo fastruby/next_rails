@@ -198,7 +198,8 @@ The test-run tracker above attaches per-example, so it only sees deprecations ra
 # Capture eager-load-time deprecations on the current bundle
 deprecations boot
 
-# ...or on the next bundle (dual boot). This just prepends BUNDLE_GEMFILE=Gemfile.next.
+# ...or on the next bundle (dual boot): sets BUNDLE_GEMFILE=Gemfile.next and
+# BUNDLE_CACHE_PATH=vendor/cache.next, the pair `next` uses.
 deprecations --next boot
 ```
 
