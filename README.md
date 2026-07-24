@@ -9,7 +9,7 @@ A toolkit to upgrade your next Rails application. It helps you set up **dual boo
 ## Features
 
 - **Dual Boot** — Run your app against two sets of dependencies (e.g. Rails 7.1 and Rails 7.2) side by side
-- **Deprecation Tracking** — Capture and compare deprecation warnings across test runs (RSpec & Minitest)
+- **Deprecation Tracking** — Capture and compare deprecation warnings across test runs (RSpec & Minitest), plus load-time warnings via `deprecations boot`
 - **Bundle Report** — Check gem compatibility with a target Rails or Ruby version
 - **Ruby Check** — Find the minimum Ruby version compatible with a target Rails version
 
@@ -190,6 +190,23 @@ DEPRECATION_TRACKER=save rspec
 DEPRECATION_TRACKER=compare rspec
 ```
 
+### Boot-time deprecations
+
+The test-run tracker above attaches per-example, so it only sees deprecations raised *while a test runs*. It structurally misses the deprecations that fire when the app **loads** — association / scope / callback declaration warnings that fire when a class body is evaluated, which no test necessarily triggers. `deprecations boot` catches those: it boots the app and eager-loads it with the tracker already listening, then writes an ordinary shitlist you can read with `info`.
+
+```bash
+# Capture load-time deprecations on the current bundle
+deprecations boot
+
+# ...or on the next bundle (dual boot). This just prepends BUNDLE_GEMFILE=Gemfile.next.
+deprecations --next boot
+```
+
+The result is written to `spec/support/deprecation_warning.boot.shitlist.json` (or `deprecation_warning.boot.next.shitlist.json` with `--next`), keyed under a single `boot` bucket, and summarized like `info`. Override the path with `--output`.
+
+> [!NOTE]
+> Use `--next` only once the next bundle already boots cleanly (dual boot set up and breaking changes fixed — see [Dual Boot](#dual-boot)); that's when it captures the next version's warnings in bulk. If the app can't boot, `boot` exits non-zero and says so rather than reporting "no deprecations."
+
 ### Parallel CI support
 
 When running tests across parallel CI nodes, each node can write to its own shard file to avoid conflicts. The tracker auto-detects the node index from common CI environment variables (`CI_NODE_INDEX`, `CIRCLE_NODE_INDEX`, `BUILDKITE_PARALLEL_JOB`, `SEMAPHORE_JOB_INDEX`, `CI_NODE_INDEX` for GitLab), or you can set it explicitly via the `node_index` option.
@@ -254,6 +271,8 @@ deprecations info
 deprecations info --pattern "ActiveRecord::Base"
 deprecations merge --delete-shards
 deprecations run
+deprecations boot          # capture load-time deprecations (see "Boot-time deprecations")
+deprecations --next boot   # same, on the next bundle
 deprecations --help
 ```
 
