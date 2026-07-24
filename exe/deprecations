@@ -157,6 +157,10 @@ option_parser = OptionParser.new do |opts|
     options[:output] = output
   end
 
+  opts.on("--path PATH", "info/run/merge: read this shitlist instead of the default (overrides --next). Intended for `info` — a boot shitlist buckets under 'boot', not test files") do |read_path|
+    options[:path] = read_path
+  end
+
   opts.on_tail("-h", "--help", "Prints this help") do
     puts opts
     exit
@@ -166,7 +170,8 @@ end
 option_parser.parse!
 
 options[:mode] = ARGV.last
-path = options[:next] ? "spec/support/deprecation_warning.next.shitlist.json" : "spec/support/deprecation_warning.shitlist.json"
+default_path = options[:next] ? "spec/support/deprecation_warning.next.shitlist.json" : "spec/support/deprecation_warning.shitlist.json"
+path = options[:path] || default_path
 
 case options[:mode]
 when "merge"

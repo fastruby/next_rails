@@ -192,7 +192,7 @@ DEPRECATION_TRACKER=compare rspec
 
 ### Boot-time deprecations
 
-The test-run tracker above attaches per-example, so it only sees deprecations raised *while a test runs*. It structurally misses the deprecations that fire when the app **eager-loads** — association / scope / callback declaration warnings that fire when a class body is evaluated, which no test necessarily triggers. `deprecations boot` catches those: it boots the app and eager-loads it with the tracker already listening, then writes an ordinary shitlist you can read with `info`. (Warnings emitted earlier, during gem require or initializers, fire before the tracker attaches and are out of scope.)
+The test-run tracker above attaches per-example, so it only sees deprecations raised *while a test runs*. It structurally misses the deprecations that fire when the app **eager-loads** — association / scope / callback declaration warnings that fire when a class body is evaluated, which no test necessarily triggers. `deprecations boot` catches those: it boots the app and eager-loads it with the tracker already listening, prints an `info`-style summary, and writes an ordinary shitlist. (Warnings emitted earlier, during gem require or initializers, fire before the tracker attaches and are out of scope.)
 
 ```bash
 # Capture eager-load-time deprecations on the current bundle
@@ -202,7 +202,12 @@ deprecations boot
 deprecations --next boot
 ```
 
-The result is written to `spec/support/deprecation_warning.boot.shitlist.json` (or `deprecation_warning.boot.next.shitlist.json` with `--next`), keyed under a single `boot` bucket, and summarized like `info`. Override the path with `--output`.
+The result is written to `spec/support/deprecation_warning.boot.shitlist.json` (or `deprecation_warning.boot.next.shitlist.json` with `--next`), keyed under a single `boot` bucket. Override where it's written with `--output`. To re-inspect or filter a saved boot shitlist later, point the read commands at it with `--path`:
+
+```bash
+deprecations info --path spec/support/deprecation_warning.boot.shitlist.json
+deprecations info --pattern "ActiveRecord" --path spec/support/deprecation_warning.boot.shitlist.json
+```
 
 > [!NOTE]
 > Use `--next` only once the next bundle already boots cleanly (dual boot set up and breaking changes fixed — see [Dual Boot](#dual-boot)); that's when it captures the next version's warnings in bulk. If the app can't boot, `boot` exits non-zero and says so rather than reporting "no deprecations."
