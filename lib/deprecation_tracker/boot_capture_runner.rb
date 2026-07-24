@@ -31,6 +31,30 @@ if Rails.application.config.eager_load
   exit DeprecationTracker::BootCapture::EAGER_LOAD_EXIT
 end
 
+# Force a recording, non-fatal deprecation setup for the capture. Apps mid-upgrade
+# commonly do one of these in the test env, and each would defeat capture:
+#   * silence deprecations (config.active_support.report_deprecations = false, or
+#     ActiveSupport::Deprecation.silenced = true) — Reporting#warn returns early on
+#     `silenced` before behavior is consulted, so nothing is recorded (false clean);
+#   * set deprecation = :raise — the first eager-load warning raises and aborts
+#     before after_run, leaving the CLI blaming a generic boot failure.
+# We only want to RECORD warnings here, not silence or fail on them. Use the
+# COLLECTION-level setters, not a per-deprecator loop: they update the collection's
+# stored options, so a deprecator a gem/engine registers during eager-load inherits
+# the same non-fatal setup instead of the app's :raise. init_tracker appends its
+# collector after this, so both :stderr and the collector run. Mirrors init_tracker's
+# deprecators-vs-singleton version fork.
+# Note: this prints deprecations to stderr even for apps that normally silence them.
+if defined?(Rails) && defined?(Rails.application) && defined?(Rails.application.deprecators)
+  Rails.application.deprecators.silenced = false
+  Rails.application.deprecators.behavior = :stderr
+  Rails.application.deprecators.disallowed_behavior = :stderr
+elsif defined?(ActiveSupport) && defined?(ActiveSupport::Deprecation)
+  ActiveSupport::Deprecation.silenced = false
+  ActiveSupport::Deprecation.behavior = :stderr
+  ActiveSupport::Deprecation.disallowed_behavior = :stderr if ActiveSupport::Deprecation.respond_to?(:disallowed_behavior=)
+end
+
 tracker = DeprecationTracker.init_tracker(
   :shitlist_path => ENV.fetch("DEPRECATION_BOOT_OUTPUT"),
   :mode => "save"

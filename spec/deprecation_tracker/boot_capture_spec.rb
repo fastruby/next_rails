@@ -63,5 +63,16 @@ RSpec.describe DeprecationTracker::BootCapture do
       expect(script).to include("exit DeprecationTracker::BootCapture::EAGER_LOAD_EXIT")
       expect(script.index("config.eager_load")).to be < script.index("Rails.application.eager_load!")
     end
+
+    it "un-silences and forces a non-raising behavior before attaching the collector" do
+      # A silenced env records nothing (Reporting#warn returns early on `silenced`)
+      # and a :raise env aborts on the first warning; both defeat capture. Un-silence
+      # and force :stderr / disallowed :stderr first, before init_tracker and eager_load!.
+      script = File.read(described_class::RUNNER_PATH)
+      expect(script).to include("silenced = false")
+      expect(script).to include("behavior = :stderr")
+      expect(script).to include("disallowed_behavior = :stderr")
+      expect(script.index("silenced = false")).to be < script.index("DeprecationTracker.init_tracker")
+    end
   end
 end
