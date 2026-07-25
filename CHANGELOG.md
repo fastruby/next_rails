@@ -4,6 +4,8 @@
 - [FEATURE: Validate the DeprecationTracker mode at initialization, treating a blank mode as the default `save`](https://github.com/fastruby/next_rails/pull/186)
 - [BUGFIX: `bundle_report outdated` no longer confuses a locally-sourced (`path:`) gem with a same-named public gem on rubygems; local gems are excluded from the out-of-date check and counted separately](https://github.com/fastruby/next_rails/pull/189)
 - [FEATURE: Add `deprecations boot` to capture eager-load-time deprecation warnings the per-test tracker misses — association/scope/callback declaration warnings that fire when a class body is evaluated](https://github.com/fastruby/next_rails/pull/194)
+- [BUGFIX: The `deprecations` executable no longer requires the undeclared `rainbow` gem, which made it fail to load on a clean install](https://github.com/fastruby/next_rails/pull/194)
+- [BUGFIX: `deprecations run` no longer raises `NoMethodError` before doing any work](https://github.com/fastruby/next_rails/pull/194)
 
 * Your changes/patches go here.
 
