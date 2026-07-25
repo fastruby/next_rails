@@ -88,5 +88,24 @@ class DeprecationTracker
       parts = env_str.empty? ? argv : [env_str] + argv
       parts.join(" ")
     end
+
+    # The sibling file the CLI writes to, renamed onto output_path only on success
+    # so a failed/refused boot never destroys a previous capture.
+    def self.partial_path_for(output_path)
+      "#{output_path}.partial"
+    end
+
+    # Classify a boot attempt from its process result so the CLI's branching is
+    # testable without shelling out. `succeeded` is the truthiness of system's
+    # return, `exit_status` the child's exit code (nil if it couldn't run),
+    # `output_written` whether the partial file exists afterward.
+    #   :eager_load_refused - the runner refused (see EAGER_LOAD_EXIT); explained already
+    #   :failed             - the app did not boot; no usable capture
+    #   :ok                 - the partial was written and can be promoted
+    def self.boot_result(succeeded, exit_status, output_written)
+      return :eager_load_refused if exit_status == EAGER_LOAD_EXIT
+      return :failed unless succeeded && output_written
+      :ok
+    end
   end
 end

@@ -57,7 +57,7 @@ def run_boot(opts = {})
   # that fails or refuses never destroys a previous good capture. The partial's
   # presence afterward also proves THIS boot wrote it (the runner only writes once
   # it reaches after_run), so a missing partial means the app failed to boot.
-  partial_path = "#{output_path}.partial"
+  partial_path = DeprecationTracker::BootCapture.partial_path_for(output_path)
 
   FileUtils.mkdir_p(File.dirname(output_path))
   FileUtils.rm_f(partial_path) # clear a stale partial, never the real output
@@ -69,15 +69,15 @@ def run_boot(opts = {})
   puts DeprecationTracker::BootCapture.command_display(command)
   booted = system(*command) # array form: no shell, so output_path can't inject
   status = $?
+  exit_status = status ? status.exitstatus : nil
 
-  # The runner refused because the env eager-loads at boot; it already printed the
-  # specific explanation, so don't bury it under the generic guess below.
-  if status && status.exitstatus == DeprecationTracker::BootCapture::EAGER_LOAD_EXIT
+  case DeprecationTracker::BootCapture.boot_result(booted, exit_status, File.exist?(partial_path))
+  when :eager_load_refused
+    # The runner already printed the specific explanation; surface its exit code
+    # rather than the generic guess below.
     FileUtils.rm_f(partial_path)
-    exit status.exitstatus
-  end
-
-  if !booted || !File.exist?(partial_path)
+    exit exit_status
+  when :failed
     FileUtils.rm_f(partial_path)
     STDERR.puts Rainbow("Boot did not complete — the app failed to load (see the error above).").red
     STDERR.puts "No shitlist was written, so this is NOT a clean result. A common cause is a missing"

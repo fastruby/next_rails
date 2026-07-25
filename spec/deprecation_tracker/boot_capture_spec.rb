@@ -71,12 +71,21 @@ RSpec.describe DeprecationTracker::BootCapture do
   end
 
   describe "RUNNER_PATH" do
+    # Accepted limitation: the runner only does its real work inside a booted Rails
+    # app (init_tracker + eager_load!), which this gem's suite has no fixture for.
+    # The examples below assert the runner's *structure* (source text) — that the
+    # eager-load guard, the un-silence/behavior setup, the transform_message, and
+    # the init_tracker reuse are present and correctly ordered. Behavioral coverage
+    # of the running runner comes from a CLI smoke against a fixture app, which is
+    # blocked until `exe/deprecations` can load (see the rainbow require fix); until
+    # then these structural checks plus the maintained manual verification stand in.
     it "points at a real, gem-shipped script (no temp file written at runtime)" do
       expect(File.file?(described_class::RUNNER_PATH)).to be(true)
     end
 
     it "is valid Ruby" do
-      expect { RubyVM::InstructionSequence.compile(File.read(described_class::RUNNER_PATH)) }.not_to raise_error
+      # `ruby -c` is portable across implementations; RubyVM::InstructionSequence is MRI-only.
+      expect(system(RbConfig.ruby, "-c", described_class::RUNNER_PATH, out: File::NULL)).to be(true)
     end
 
     it "reuses DeprecationTracker rather than reimplementing capture" do
@@ -115,6 +124,28 @@ RSpec.describe DeprecationTracker::BootCapture do
       expect(script).to include("behavior = :stderr")
       expect(script).to include("disallowed_behavior = :stderr")
       expect(script.index("silenced = false")).to be < script.index("DeprecationTracker.init_tracker")
+    end
+  end
+
+  describe ".partial_path_for" do
+    it "is the output path plus .partial (a sibling, for a same-dir atomic rename)" do
+      expect(described_class.partial_path_for("spec/support/x.json")).to eq("spec/support/x.json.partial")
+    end
+  end
+
+  describe ".boot_result" do
+    it "flags the eager-load refusal by its exit status, whatever else happened" do
+      expect(described_class.boot_result(false, described_class::EAGER_LOAD_EXIT, false)).to eq(:eager_load_refused)
+    end
+
+    it "is :failed when the process failed or wrote no partial" do
+      expect(described_class.boot_result(false, 1, true)).to eq(:failed)   # non-zero exit
+      expect(described_class.boot_result(true, 0, false)).to eq(:failed)   # no output written
+      expect(described_class.boot_result(nil, nil, false)).to eq(:failed)  # Ctrl-C: system -> nil
+    end
+
+    it "is :ok only when the process succeeded and the partial was written" do
+      expect(described_class.boot_result(true, 0, true)).to eq(:ok)
     end
   end
 
