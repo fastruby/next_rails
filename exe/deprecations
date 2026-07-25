@@ -1,12 +1,13 @@
 #!/usr/bin/env ruby
 require "json"
-require "rainbow"
 require "optparse"
 require "set"
+require "fileutils"
+
+require_relative "../lib/next_rails/tint"
 require_relative "../lib/deprecation_tracker/valid_modes"
 require_relative "../lib/deprecation_tracker/shard_merger"
 require_relative "../lib/deprecation_tracker/boot_capture"
-require "fileutils"
 
 def run_tests(deprecation_warnings, opts = {})
   tracker_mode = DeprecationTracker.sanitize_mode(opts[:tracker_mode])
@@ -41,11 +42,11 @@ def print_info(deprecation_warnings, opts = {})
     end
   end.sort_by {|message, data| data[:occurrences] }.reverse.to_h
 
-  puts Rainbow("Ten most common deprecation warnings:").underline
+  puts NextRails::Tint("Ten most common deprecation warnings:").underline
   frequency_by_message.take(10).each do |message, data|
-    puts Rainbow("Occurrences: #{data.fetch(:occurrences)}").bold
+    puts NextRails::Tint("Occurrences: #{data.fetch(:occurrences)}").bold
     puts "#{bucket_label}: #{data.fetch(:buckets).to_a.join(" ")}" if verbose
-    puts Rainbow(message).red
+    puts NextRails::Tint(message).red
     puts "----------"
   end
 end
@@ -79,7 +80,7 @@ def run_boot(opts = {})
     exit exit_status
   when :failed
     FileUtils.rm_f(partial_path)
-    STDERR.puts Rainbow("Boot did not complete — the app failed to load (see the error above).").red
+    STDERR.puts NextRails::Tint("Boot did not complete — the app failed to load (see the error above).").red
     STDERR.puts "No shitlist was written, so this is NOT a clean result. A common cause is a missing"
     STDERR.puts "config/database.yml or unset env in this checkout. Fix the boot error and re-run."
     exit 1
@@ -91,11 +92,11 @@ def run_boot(opts = {})
   # The runner wrote an ordinary shitlist; reuse print_info to summarize it.
   deprecation_warnings = JSON.parse(File.read(output_path))
   if deprecation_warnings.empty?
-    puts Rainbow("Eager-load completed cleanly — no deprecation warnings while loading the app's classes.").green
+    puts NextRails::Tint("Eager-load completed cleanly — no deprecation warnings while loading the app's classes.").green
     return
   end
 
-  puts Rainbow("Boot-time deprecations written to #{output_path}").underline
+  puts NextRails::Tint("Boot-time deprecations written to #{output_path}").underline
   print_info(deprecation_warnings, verbose: opts[:verbose])
 end
 
@@ -221,10 +222,10 @@ when "run", "info"
     print_info(deprecation_warnings, verbose: options[:verbose])
   end
 when nil
-  STDERR.puts Rainbow("Must pass a mode: run, info, merge, or boot").red
+  STDERR.puts NextRails::Tint("Must pass a mode: run, info, merge, or boot").red
   puts option_parser
   exit 1
 else
-  STDERR.puts Rainbow("Unknown mode: #{options[:mode]}").red
+  STDERR.puts NextRails::Tint("Unknown mode: #{options[:mode]}").red
   exit 1
 end

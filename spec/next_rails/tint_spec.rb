@@ -12,6 +12,10 @@ RSpec.describe NextRails::Tint do
     expect(NextRails::Tint("hello").red.to_s).to eq("\e[31mhello\e[0m")
   end
 
+  it "supports underline (the CLI headlines use it)" do
+    expect(NextRails::Tint("hello").underline.to_s).to eq("\e[4mhello\e[0m")
+  end
+
   it "chains multiple styles into one escape sequence" do
     expect(NextRails::Tint("hello").bold.white.to_s).to eq("\e[1;37mhello\e[0m")
   end
