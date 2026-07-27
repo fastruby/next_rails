@@ -9,7 +9,7 @@ A toolkit to upgrade your next Rails application. It helps you set up **dual boo
 ## Features
 
 - **Dual Boot** — Run your app against two sets of dependencies (e.g. Rails 7.1 and Rails 7.2) side by side
-- **Deprecation Tracking** — Capture and compare deprecation warnings across test runs (RSpec & Minitest), plus eager-load-time warnings via `deprecations boot`
+- **Deprecation Tracking** — Capture and compare deprecation warnings across test runs (RSpec & Minitest), and capture eager-load-time warnings via `deprecations boot`
 - **Bundle Report** — Check gem compatibility with a target Rails or Ruby version
 - **Ruby Check** — Find the minimum Ruby version compatible with a target Rails version
 
@@ -211,7 +211,7 @@ deprecations info --pattern "ActiveRecord" --path spec/support/deprecation_warni
 ```
 
 > [!NOTE]
-> Use `--next` only once the next bundle already boots cleanly (dual boot set up and breaking changes fixed — see [Dual Boot](#dual-boot)); that's when it captures the next version's warnings in bulk. If the app can't boot, `boot` exits non-zero and says so rather than reporting "no deprecations."
+> Use `--next` only once the next bundle already boots cleanly (dual boot set up and breaking changes fixed — see [Dual Boot](#dual-boot)); that's when it captures the next version's warnings in bulk. If the app can't boot, `boot` exits non-zero with the reason — a load failure (exit 1), or a refusal because the env eager-loads at boot (exit 3) — rather than a misleading clean result. Only a genuine clean boot reports "no deprecation warnings."
 >
 > Capture must attach *before* eager-load, so the command needs `config.eager_load = false`. It unsets `CI` to keep the stock Rails 7.1+ test env (`config.eager_load = ENV["CI"].present?`) from eager-loading at boot; if your app hardcodes `config.eager_load = true`, `boot` refuses and tells you to set it false for the run.
 
@@ -277,6 +277,7 @@ View, filter, and manage stored deprecation warnings:
 ```bash
 deprecations info
 deprecations info --pattern "ActiveRecord::Base"
+deprecations info --path PATH   # read a specific shitlist (e.g. a boot capture)
 deprecations merge --delete-shards
 deprecations run
 deprecations boot          # capture eager-load-time deprecations (see "Boot-time deprecations")
