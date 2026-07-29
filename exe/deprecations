@@ -5,13 +5,9 @@ require "set"
 require "fileutils"
 
 # The whole tracker, not just valid_modes: `run` calls DeprecationTracker.sanitize_mode.
-# deprecation_tracker.rb requires "next_rails/tint" by name, so the gem's lib has to
-# be on the load path — it already is for an installed gem, but not when this script
-# runs straight out of a checkout.
-$LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
-require "deprecation_tracker"
-require "deprecation_tracker/shard_merger"
-require "deprecation_tracker/boot_capture"
+require_relative "../lib/deprecation_tracker"
+require_relative "../lib/deprecation_tracker/shard_merger"
+require_relative "../lib/deprecation_tracker/boot_capture"
 
 def run_tests(deprecation_warnings, opts = {})
   tracker_mode = DeprecationTracker.sanitize_mode(opts[:tracker_mode])
