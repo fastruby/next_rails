@@ -13,6 +13,7 @@ module NextRails
     CODES = {
       bold: 1,
       italic: 3,
+      underline: 4,
       red: 31,
       green: 32,
       yellow: 33,
