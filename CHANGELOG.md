@@ -4,6 +4,7 @@
 - [FEATURE: Add support for SimpleCov 1.0](https://github.com/fastruby/next_rails/pull/196)
 - [FEATURE: Validate the DeprecationTracker mode at initialization, treating a blank mode as the default `save`](https://github.com/fastruby/next_rails/pull/186)
 - [BUGFIX: `bundle_report outdated` no longer confuses a locally-sourced (`path:`) gem with a same-named public gem on rubygems; local gems are excluded from the out-of-date check and counted separately](https://github.com/fastruby/next_rails/pull/189)
+- [BUGFIX: The `deprecations` executable no longer requires the undeclared `rainbow` gem, which made it fail to load on a clean install](https://github.com/fastruby/next_rails/pull/197)
 
 * Your changes/patches go here.
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 require "json"
-require "rainbow"
 require "optparse"
 require "set"
+require_relative "../lib/next_rails/tint"
 require_relative "../lib/deprecation_tracker/valid_modes"
 require_relative "../lib/deprecation_tracker/shard_merger"
 
@@ -33,11 +33,11 @@ def print_info(deprecation_warnings, opts = {})
     end
   end.sort_by {|message, data| data[:occurrences] }.reverse.to_h
 
-  puts Rainbow("Ten most common deprecation warnings:").underline
+  puts NextRails::Tint("Ten most common deprecation warnings:").underline
   frequency_by_message.take(10).each do |message, data|
-    puts Rainbow("Occurrences: #{data.fetch(:occurrences)}").bold
+    puts NextRails::Tint("Occurrences: #{data.fetch(:occurrences)}").bold
     puts "Test files: #{data.fetch(:test_files).to_a.join(" ")}" if verbose
-    puts Rainbow(message).red
+    puts NextRails::Tint(message).red
     puts "----------"
   end
 end
@@ -127,10 +127,10 @@ when "run", "info"
     print_info(deprecation_warnings, verbose: options[:verbose])
   end
 when nil
-  STDERR.puts Rainbow("Must pass a mode: run, info, or merge").red
+  STDERR.puts NextRails::Tint("Must pass a mode: run, info, or merge").red
   puts option_parser
   exit 1
 else
-  STDERR.puts Rainbow("Unknown mode: #{options[:mode]}").red
+  STDERR.puts NextRails::Tint("Unknown mode: #{options[:mode]}").red
   exit 1
 end
