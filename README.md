@@ -9,7 +9,7 @@ A toolkit to upgrade your next Rails application. It helps you set up **dual boo
 ## Features
 
 - **Dual Boot** — Run your app against two sets of dependencies (e.g. Rails 7.1 and Rails 7.2) side by side
-- **Deprecation Tracking** — Capture and compare deprecation warnings across test runs (RSpec & Minitest)
+- **Deprecation Tracking** — Capture and compare deprecation warnings across test runs (RSpec & Minitest), and capture boot-time warnings via `deprecations boot`
 - **Bundle Report** — Check gem compatibility with a target Rails or Ruby version
 - **Ruby Check** — Find the minimum Ruby version compatible with a target Rails version
 
@@ -190,6 +190,26 @@ DEPRECATION_TRACKER=save rspec
 DEPRECATION_TRACKER=compare rspec
 ```
 
+### Boot-time deprecations
+
+The test-run tracker above attaches per-example, so it only sees deprecations raised *while a test runs*. It structurally misses everything the app emits while **booting**: association / scope / callback declaration warnings that fire when a class body is evaluated, plus whatever the initializers warn about. `deprecations boot` catches those. It boots the app itself, attaching the tracker before any initializer runs, then eager-loads, prints an `info`-style summary, and writes an ordinary shitlist. (Still out of scope: anything emitted from `config/boot.rb`, and deprecator-based warnings during `Bundler.require`, since loading `config/application.rb` is what requires the gems. Plain `Kernel#warn` output during gem load *is* captured.)
+
+```bash
+# Capture boot-time deprecations on the current bundle
+deprecations boot
+
+# ...or on the next bundle (dual boot): sets BUNDLE_GEMFILE=Gemfile.next and
+# BUNDLE_CACHE_PATH=vendor/cache.next, the pair `next` uses.
+deprecations --next boot
+```
+
+The result is written to `spec/support/deprecation_warning.boot.shitlist.json` (or `deprecation_warning.boot.next.shitlist.json` with `--next`), keyed under a single `boot` bucket. The summary is printed when the capture runs; commit the file to diff later captures against it.
+
+> [!NOTE]
+> Use `--next` only once the next bundle already boots cleanly (dual boot set up and breaking changes fixed — see [Dual Boot](#dual-boot)); that's when it captures the next version's warnings in bulk. If the app can't boot, `boot` exits non-zero with the reason, a load failure (exit 1) or no `config/application.rb` in this directory (exit 4), rather than a misleading clean result. Only a genuine clean boot reports "no deprecation warnings."
+>
+> Run it from the app root; that is where it looks for `config/application.rb`. `config.eager_load` can be either value: the tracker is attached before the app initializes, so an environment that eager-loads during boot is captured just the same. For the duration of the capture the app runs with deprecations recorded and printed to stderr, never silenced and never raising, even if its own config says otherwise.
+
 ### Parallel CI support
 
 When running tests across parallel CI nodes, each node can write to its own shard file to avoid conflicts. The tracker auto-detects the node index from common CI environment variables (`CI_NODE_INDEX`, `CIRCLE_NODE_INDEX`, `BUILDKITE_PARALLEL_JOB`, `SEMAPHORE_JOB_INDEX`, `CI_NODE_INDEX` for GitLab), or you can set it explicitly via the `node_index` option.
@@ -254,6 +274,8 @@ deprecations info
 deprecations info --pattern "ActiveRecord::Base"
 deprecations merge --delete-shards
 deprecations run
+deprecations boot          # capture boot-time deprecations (see "Boot-time deprecations")
+deprecations --next boot   # same, on the next bundle
 deprecations --help
 ```
 
