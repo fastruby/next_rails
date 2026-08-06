@@ -1,13 +1,17 @@
-# main [(unreleased)](https://github.com/fastruby/next_rails/compare/v1.6.0...main)
+# main [(unreleased)](https://github.com/fastruby/next_rails/compare/v1.7.0...main)
 
 - [BUGFIX: example](https://github.com/fastruby/next_rails/pull/<number>)
+
+* Your changes/patches go here.
+
+# v1.7.0 / 2026-08-05 [(commits)](https://github.com/fastruby/next_rails/compare/v1.6.0...v1.7.0)
+
 - [FEATURE: Add support for SimpleCov 1.0](https://github.com/fastruby/next_rails/pull/196)
 - [FEATURE: Validate the DeprecationTracker mode at initialization, treating a blank mode as the default `save`](https://github.com/fastruby/next_rails/pull/186)
 - [BUGFIX: `bundle_report outdated` no longer confuses a locally-sourced (`path:`) gem with a same-named public gem on rubygems; local gems are excluded from the out-of-date check and counted separately](https://github.com/fastruby/next_rails/pull/189)
 - [BUGFIX: The `deprecations` executable no longer requires the undeclared `rainbow` gem, which made it fail to load on a clean install](https://github.com/fastruby/next_rails/pull/197)
 - [BUGFIX: `deprecations run` no longer raises `NoMethodError` before doing any work](https://github.com/fastruby/next_rails/pull/198)
-
-* Your changes/patches go here.
+- [DOC: Explain `BUNDLE_GEMFILE` usage for the next Gemfile](https://github.com/fastruby/next_rails/pull/187)
 
 # v1.6.0 / 2026-05-07 [(commits)](https://github.com/fastruby/next_rails/compare/v1.5.0...v1.6.0)
 
