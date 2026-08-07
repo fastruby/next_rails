@@ -2,9 +2,11 @@
 require "json"
 require "optparse"
 require "set"
+require "fileutils"
 require_relative "../lib/next_rails/tint"
 require_relative "../lib/deprecation_tracker/valid_modes"
 require_relative "../lib/deprecation_tracker/shard_merger"
+require_relative "../lib/deprecation_tracker/boot_capture"
 
 def run_tests(deprecation_warnings, opts = {})
   tracker_mode = DeprecationTracker.sanitize_mode(opts[:tracker_mode])
@@ -25,10 +27,13 @@ end
 
 def print_info(deprecation_warnings, opts = {})
   verbose = !!opts[:verbose]
-  frequency_by_message = deprecation_warnings.each_with_object({}) do |(test_file, messages), hash|
+  # Bucket label for the verbose line. Test-run shitlists bucket by spec file
+  # ("Test files"); a boot capture buckets under the single synthetic "boot".
+  bucket_label = deprecation_warnings.keys == ["boot"] ? "Source" : "Test files"
+  frequency_by_message = deprecation_warnings.each_with_object({}) do |(bucket, messages), hash|
     messages.each do |message|
-      hash[message] ||= { test_files: Set.new, occurrences: 0 }
-      hash[message][:test_files] << test_file
+      hash[message] ||= { buckets: Set.new, occurrences: 0 }
+      hash[message][:buckets] << bucket
       hash[message][:occurrences] += 1
     end
   end.sort_by {|message, data| data[:occurrences] }.reverse.to_h
@@ -36,10 +41,60 @@ def print_info(deprecation_warnings, opts = {})
   puts NextRails::Tint("Ten most common deprecation warnings:").underline
   frequency_by_message.take(10).each do |message, data|
     puts NextRails::Tint("Occurrences: #{data.fetch(:occurrences)}").bold
-    puts "Test files: #{data.fetch(:test_files).to_a.join(" ")}" if verbose
+    puts "#{bucket_label}: #{data.fetch(:buckets).to_a.join(" ")}" if verbose
     puts NextRails::Tint(message).red
     puts "----------"
   end
+end
+
+def run_boot(opts = {})
+  next_mode = !!opts[:next]
+  output_path = DeprecationTracker::BootCapture.default_output_path(next_mode: next_mode)
+  # Write to a partial file and only replace the real output on success, so a boot
+  # that fails or refuses never destroys a previous good capture. The stale partial
+  # is cleared below, and the runner writes only when it reaches after_run, so a
+  # partial that exists afterward was written by THIS run, and a missing one means
+  # the run never got that far (the app failed to boot or to eager-load).
+  partial_path = DeprecationTracker::BootCapture.partial_path_for(output_path)
+
+  FileUtils.mkdir_p(File.dirname(output_path))
+  FileUtils.rm_f(partial_path) # clear a stale partial, never the real output
+
+  command = DeprecationTracker::BootCapture.boot_command(
+    output_path: partial_path,
+    next_mode: next_mode
+  )
+  puts DeprecationTracker::BootCapture.command_display(command)
+  booted = system(*command) # array form: no shell, so output_path can't inject
+  status = $?
+  exit_status = status ? status.exitstatus : nil
+
+  case DeprecationTracker::BootCapture.boot_result(booted, exit_status, File.exist?(partial_path))
+  when :no_app
+    # The runner already printed the specific explanation; surface its exit code
+    # rather than the generic guess below.
+    FileUtils.rm_f(partial_path)
+    exit exit_status
+  when :failed
+    FileUtils.rm_f(partial_path)
+    STDERR.puts NextRails::Tint("Boot did not complete — the app failed to load (see the error above).").red
+    STDERR.puts "No shitlist was written, so this is NOT a clean result. A common cause is a missing"
+    STDERR.puts "config/database.yml or unset env in this checkout. Fix the boot error and re-run."
+    exit 1
+  end
+
+  # Success: atomically replace the previous capture (same dir, so it's a rename).
+  FileUtils.mv(partial_path, output_path)
+
+  # The runner wrote an ordinary shitlist; reuse print_info to summarize it.
+  deprecation_warnings = JSON.parse(File.read(output_path))
+  if deprecation_warnings.empty?
+    puts NextRails::Tint("Boot completed cleanly, no deprecation warnings while loading the app.").green
+    return
+  end
+
+  puts NextRails::Tint("Boot-time deprecations written to #{output_path}").underline
+  print_info(deprecation_warnings, verbose: opts[:verbose])
 end
 
 options = {}
@@ -50,11 +105,13 @@ option_parser = OptionParser.new do |opts|
       Parses the deprecation warning shitlist and show info or run tests.
 
     Examples:
-      bin/deprecations info # Show top ten deprecations
-      bin/deprecations --next info # Show top ten deprecations for Rails 5
+      bin/deprecations info                                          # Show top ten deprecations
+      bin/deprecations --next info                                   # Show top ten deprecations for Rails 5
+      bin/deprecations boot                                          # Capture boot-time (eager-load) deprecations the test tracker can't see
+      bin/deprecations --next boot                                   # Same, booting the next bundle
       bin/deprecations --pattern "ActiveRecord::Base" --verbose info # Show full details on deprecations matching pattern
-      bin/deprecations --tracker-mode save --pattern "pass" run # Run tests that output deprecations matching pattern and update shitlist
-      bin/deprecations merge --delete-shards # Merge parallel CI shards and remove shard files
+      bin/deprecations --tracker-mode save --pattern "pass" run      # Run tests that output deprecations matching pattern and update shitlist
+      bin/deprecations merge --delete-shards                         # Merge parallel CI shards and remove shard files
 
     Modes:
       info
@@ -65,6 +122,9 @@ option_parser = OptionParser.new do |opts|
 
       merge
         Merge parallel CI shard files into the canonical shitlist. Use with --delete-shards to remove shard files after merging.
+
+      boot
+        Boot the app with the tracker listening, catching the deprecations the per-test tracker never sees: those from the initializers and from class bodies during eager-load. Writes spec/support/deprecation_warning.boot[.next].shitlist.json (bucket "boot") and summarizes it like `info`.
 
     Options:
   MESSAGE
@@ -107,7 +167,12 @@ when "merge"
   result = output[:result]
   total_messages = result.values.map(&:size).reduce(0, :+)
   puts "Merged #{shards} shard files into #{path} (#{result.size} buckets, #{total_messages} deprecation messages)"
+when "boot"
+  abort "--pattern is not supported with 'boot': it captures everything the boot emits." if options[:pattern]
+  run_boot(next: options[:next], verbose: options[:verbose])
 when "run", "info"
+  abort "No shitlist found at #{path}." unless File.exist?(path)
+
   pattern_string = options.fetch(:pattern, ".+")
   pattern = /#{pattern_string}/
 
@@ -127,7 +192,7 @@ when "run", "info"
     print_info(deprecation_warnings, verbose: options[:verbose])
   end
 when nil
-  STDERR.puts NextRails::Tint("Must pass a mode: run, info, or merge").red
+  STDERR.puts NextRails::Tint("Must pass a mode: run, info, merge, or boot").red
   puts option_parser
   exit 1
 else

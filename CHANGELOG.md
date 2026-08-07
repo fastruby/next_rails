@@ -1,6 +1,6 @@
 # main [(unreleased)](https://github.com/fastruby/next_rails/compare/v1.7.0...main)
 
-- [BUGFIX: example](https://github.com/fastruby/next_rails/pull/<number>)
+- [FEATURE: Add `deprecations boot` to capture the deprecation warnings the per-test tracker misses: those emitted while the app boots, from the initializers and from class bodies during eager-load](https://github.com/fastruby/next_rails/pull/199)
 
 * Your changes/patches go here.
 

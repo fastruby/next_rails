@@ -6,12 +6,13 @@ require "open3"
 require "tmpdir"
 require "fileutils"
 require "rbconfig"
+require "deprecation_tracker/boot_capture"
 
 # Smoke tests that actually execute exe/deprecations. Everything here runs the real
 # script in a subprocess, so it catches the class of breakage unit tests on lib/
-# cannot: a missing require, or a mode that raises before doing any work. Two shipped
-# bugs (an undeclared `rainbow` require and a NoMethodError in `run`) survived
-# precisely because nothing ever loaded this executable.
+# cannot: a missing require, a mode that raises before doing any work, a flag guard
+# that never fires. Two shipped bugs (an undeclared `rainbow` require and a
+# NoMethodError in `run`) survived precisely because nothing ever loaded this file.
 RSpec.describe "exe/deprecations" do
   def cli_path
     File.expand_path("../exe/deprecations", __dir__)
@@ -22,9 +23,20 @@ RSpec.describe "exe/deprecations" do
   end
 
   # Runs the CLI in `chdir` and returns [stdout, stderr, exitstatus].
-  def run_cli(args, chdir:)
-    stdout, stderr, status = Open3.capture3(RbConfig.ruby, cli_path, *args, chdir: chdir)
+  def run_cli(args, chdir:, env: {})
+    stdout, stderr, status = Open3.capture3(env, RbConfig.ruby, cli_path, *args, chdir: chdir)
     [stdout, stderr, status.exitstatus]
+  end
+
+  # A stand-in for `bundle` on PATH, so the boot branches can be driven without a
+  # Rails app. `behavior` is the body of a /bin/sh script.
+  def stub_bundle(dir, behavior)
+    bin = File.join(dir, "fake_bin")
+    Dir.mkdir(bin) unless File.directory?(bin)
+    path = File.join(bin, "bundle")
+    File.write(path, "#!/bin/sh\n#{behavior}\n")
+    File.chmod(0o755, path)
+    { "PATH" => "#{bin}:#{ENV["PATH"]}" }
   end
 
   around do |example|
@@ -72,12 +84,21 @@ RSpec.describe "exe/deprecations" do
       expect(stdout).not_to include("partial rendering")
     end
 
-    it "lists the test files with --verbose" do
+    it "labels spec-file buckets as test files" do
       shitlist
       stdout, _stderr, = run_cli(["info", "--verbose"], chdir: dir)
 
       expect(stdout).to include("Test files: ")
       expect(stdout).to include("user_spec.rb")
+      expect(stdout).not_to include("Source:")
+    end
+
+    it "aborts with a readable message when the shitlist is missing" do
+      _stdout, stderr, status = run_cli(["info"], chdir: dir)
+
+      expect(status).to eq(1)
+      expect(stderr).to include("No shitlist found at")
+      expect(stderr).not_to include("Errno::ENOENT")
     end
 
     it "exits non-zero when no message matches --pattern" do
@@ -92,13 +113,14 @@ RSpec.describe "exe/deprecations" do
   describe "run" do
     # Regression: run called DeprecationTracker.sanitize_mode while the CLI only
     # required valid_modes, so every invocation died with NoMethodError before doing
-    # any work. Reaching the mode validation at all proves the tracker is loaded.
+    # any work. Reaching the mode validation at all proves the method resolves.
     it "validates --tracker-mode instead of raising NoMethodError" do
       shitlist
       _stdout, stderr, status = run_cli(["run", "--tracker-mode", "bogus"], chdir: dir)
 
       expect(status).to eq(1)
       expect(stderr).to include("Invalid --tracker-mode")
+      expect(stderr).to include("save, compare")
       expect(stderr).not_to include("NoMethodError")
     end
   end
@@ -155,6 +177,77 @@ RSpec.describe "exe/deprecations" do
 
       expect(status).to eq(1)
       expect(stderr).to include("Unknown mode")
+    end
+  end
+
+  describe "boot" do
+    let(:output_path) { File.join(dir, "spec/support/deprecation_warning.boot.shitlist.json") }
+    let(:partial_path) { "#{output_path}.partial" }
+
+    before { File.write(output_path, JSON.generate("boot" => ["PREVIOUS CAPTURE"])) }
+
+    it "rejects --pattern, which it cannot apply" do
+      _stdout, stderr, status = run_cli(["boot", "--pattern", "anything"], chdir: dir)
+
+      expect(status).to eq(1)
+      expect(stderr).to include("--pattern is not supported with 'boot'")
+    end
+
+    it "tells the runner where the app root is" do
+      env = stub_bundle(dir, 'echo "{\"boot\":[\"root=$DEPRECATION_BOOT_APP_ROOT\"]}" > "$DEPRECATION_BOOT_OUTPUT"')
+
+      stdout, _stderr, status = run_cli(["boot"], chdir: dir, env: env)
+
+      expect(status).to eq(0)
+      # Compared through realpath: on macOS the tmpdir is reached via a /private symlink.
+      expect(stdout).to include("root=#{File.realpath(dir)}")
+    end
+
+    it "promotes the partial and summarizes it when the boot succeeds" do
+      env = stub_bundle(dir, 'echo \'{"boot":["DEPRECATION WARNING: captured"]}\' > "$DEPRECATION_BOOT_OUTPUT"')
+
+      stdout, _stderr, status = run_cli(["boot"], chdir: dir, env: env)
+
+      expect(status).to eq(0)
+      expect(stdout).to include("Boot-time deprecations written to")
+      expect(stdout).to include("captured")
+      expect(JSON.parse(File.read(output_path))).to eq("boot" => ["DEPRECATION WARNING: captured"])
+      expect(File.exist?(partial_path)).to be(false)
+    end
+
+    it "reports a clean boot when the capture is empty" do
+      env = stub_bundle(dir, 'echo \'{}\' > "$DEPRECATION_BOOT_OUTPUT"')
+
+      stdout, _stderr, status = run_cli(["boot"], chdir: dir, env: env)
+
+      expect(status).to eq(0)
+      expect(stdout).to include("Boot completed cleanly")
+      expect(File.exist?(partial_path)).to be(false)
+    end
+
+    it "keeps the previous capture when the app fails to boot" do
+      env = stub_bundle(dir, "echo 'boom' >&2; exit 1")
+
+      _stdout, stderr, status = run_cli(["boot"], chdir: dir, env: env)
+
+      expect(status).to eq(1)
+      expect(stderr).to include("Boot did not complete")
+      expect(JSON.parse(File.read(output_path))).to eq("boot" => ["PREVIOUS CAPTURE"])
+      expect(File.exist?(partial_path)).to be(false)
+    end
+
+    it "surfaces the runner's own explanation when it refuses to capture" do
+      exit_code = DeprecationTracker::BootCapture::NO_APP_EXIT
+      env = stub_bundle(dir, "echo 'no config/application.rb under here' >&2; exit #{exit_code}")
+
+      _stdout, stderr, status = run_cli(["boot"], chdir: dir, env: env)
+
+      expect(status).to eq(exit_code)
+      expect(stderr).to include("no config/application.rb")
+      # The generic guess must not bury the runner's specific explanation.
+      expect(stderr).not_to include("Boot did not complete")
+      expect(JSON.parse(File.read(output_path))).to eq("boot" => ["PREVIOUS CAPTURE"])
+      expect(File.exist?(partial_path)).to be(false)
     end
   end
 end
