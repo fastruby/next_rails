@@ -4,6 +4,8 @@
 
 * Your changes/patches go here.
 
+- [FEATURE: `bundle_report compatibility --offline` lists the incompatible gems without looking up compatible versions on rubygems.org](https://github.com/fastruby/next_rails/pull/201)
+
 # v1.7.0 / 2026-08-05 [(commits)](https://github.com/fastruby/next_rails/compare/v1.6.0...v1.7.0)
 
 - [FEATURE: Add support for SimpleCov 1.0](https://github.com/fastruby/next_rails/pull/196)
