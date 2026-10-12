@@ -35,6 +35,56 @@ RSpec.describe NextRails::BundleReport::RailsVersionCompatibility do
       expect(output).to include("- upgrade to 5.8.0")
       expect(output).to include("gems incompatible with Rails 7.1")
     end
+
+    it "lists incompatible gems without looking up newer versions when offline" do
+      specification = Gem::Specification.new do |s|
+        s.name = "audited"
+        s.version = "5.1.0"
+        s.add_dependency "rails", ">= 5.0", "< 7.1"
+      end
+      audited = NextRails::GemInfo.new(specification)
+
+      expect(audited).not_to receive(:find_latest_compatible)
+
+      output =
+        NextRails::BundleReport::RailsVersionCompatibility.new(
+          gems: [audited],
+          options: { rails_version: "7.1", include_rails_gems: false, offline: true }
+        ).generate
+
+      expect(output).to include("Incompatible with Rails 7.1 (compatible versions not looked up):")
+      expect(output).to include("audited 5.1.0")
+      expect(output).to include("gems incompatible with Rails 7.1")
+    end
+
+    it "prints only the count when offline and nothing is incompatible" do
+      output =
+        NextRails::BundleReport::RailsVersionCompatibility.new(
+          gems: [],
+          options: { rails_version: "7.1", include_rails_gems: false, offline: true }
+        ).generate
+
+      expect(output).not_to include("=> Incompatible")
+      expect(output).to include("gems incompatible with Rails 7.1")
+    end
+  end
+
+  describe "#incompatible_gems_by_state" do
+    it "groups the gems under :not_checked when offline" do
+      specification = Gem::Specification.new do |s|
+        s.name = "audited"
+        s.version = "5.1.0"
+        s.add_dependency "rails", ">= 5.0", "< 7.1"
+      end
+      audited = NextRails::GemInfo.new(specification)
+
+      by_state = NextRails::BundleReport::RailsVersionCompatibility.new(
+        gems: [audited],
+        options: { rails_version: "7.1", offline: true }
+      ).incompatible_gems_by_state
+
+      expect(by_state).to eq(not_checked: [audited])
+    end
   end
 end
 
