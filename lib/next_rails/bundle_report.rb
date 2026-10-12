@@ -15,10 +15,10 @@ module NextRails
       puts RubyVersionCompatibility.new(options: options).generate
     end
 
-    def rails_compatibility(rails_version: nil, include_rails_gems: nil, offline: false)
+    def rails_compatibility(rails_version: nil, include_rails_gems: nil)
       return unless rails_version
 
-      options = { rails_version: rails_version, include_rails_gems: include_rails_gems, offline: offline }
+      options = { rails_version: rails_version, include_rails_gems: include_rails_gems }
       puts RailsVersionCompatibility.new(options: options).generate
     end
 
