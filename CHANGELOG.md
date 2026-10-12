@@ -5,6 +5,7 @@
 * Your changes/patches go here.
 
 - [FEATURE: `bundle_report compatibility --offline` lists the incompatible gems without looking up compatible versions on rubygems.org](https://github.com/fastruby/next_rails/pull/201)
+- [FEATURE: `bundle_report compatibility --offline` reads the gems from the app's lockfile, so the report runs without the app's bundle installed, and each incompatible gem names the gems that depend on it](https://github.com/fastruby/next_rails/pull/202)
 
 # v1.7.0 / 2026-08-05 [(commits)](https://github.com/fastruby/next_rails/compare/v1.6.0...v1.7.0)
 
