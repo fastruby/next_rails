@@ -30,6 +30,11 @@ class NextRails::BundleReport::CLI
         raise ArgumentError, "Invalid Ruby version format. Example: --ruby-version=3.3"
       end
     end
+
+    # The other reports have no offline mode: outdated and ruby_check always call rubygems.org
+    if argv.include?("--offline") && (report_type != "compatibility" || argv.any? { |arg| arg.start_with?("--ruby-version") })
+      raise ArgumentError, "--offline only applies to the compatibility report with --rails-version."
+    end
   end
 
   def run
@@ -49,6 +54,7 @@ class NextRails::BundleReport::CLI
 
         Examples:
           #{$0} compatibility --rails-version 5.0
+          #{$0} compatibility --rails-version 5.0 --offline
           #{$0} compatibility --ruby-version 3.3
           #{$0} outdated
           #{$0} outdated --json
@@ -75,6 +81,10 @@ class NextRails::BundleReport::CLI
 
       opts.on("--include-rails-gems", "Include Rails gems in compatibility report (defaults to false)") do
         options[:include_rails_gems] = true
+      end
+
+      opts.on("--offline", "List incompatible gems without looking up compatible versions on rubygems.org (defaults to false)") do
+        options[:offline] = true
       end
 
       opts.on("--json", "Output JSON in outdated report (defaults to false)") do
@@ -110,7 +120,8 @@ class NextRails::BundleReport::CLI
       else
         NextRails::BundleReport.rails_compatibility(
           rails_version: options.fetch(:rails_version, "5.0"),
-          include_rails_gems: options.fetch(:include_rails_gems, false)
+          include_rails_gems: options.fetch(:include_rails_gems, false),
+          offline: options.fetch(:offline, false)
         )
       end
     end

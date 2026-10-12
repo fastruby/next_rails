@@ -25,7 +25,22 @@ RSpec.describe NextRails::BundleReport::CLI do
 
     it 'calls rails_compatibility if called with compatibility with rails-version option' do
       expect(NextRails::BundleReport).to receive(:rails_compatibility)
+        .with(rails_version: "8.0.0", include_rails_gems: false, offline: false)
       described_class.new(["compatibility", "--rails-version=8.0.0"]).run
+    end
+
+    it 'passes offline to rails_compatibility if called with the offline option' do
+      expect(NextRails::BundleReport).to receive(:rails_compatibility)
+        .with(rails_version: "8.0.0", include_rails_gems: false, offline: true)
+      described_class.new(["compatibility", "--rails-version=8.0.0", "--offline"]).run
+    end
+
+    it 'raises if offline is used with a report that has no offline mode' do
+      [["outdated", "--offline"], ["ruby_check", "--rails-version=8.0.0", "--offline"],
+       ["compatibility", "--ruby-version=3.4.0", "--offline"]].each do |argv|
+        expect { described_class.new(argv) }
+          .to raise_error(ArgumentError, /--offline only applies to the compatibility report with --rails-version/)
+      end
     end
 
     it 'calls ruby_compatibility if called with compatibility with ruby-version option' do
