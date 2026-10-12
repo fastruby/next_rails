@@ -37,7 +37,7 @@ RSpec.describe NextRails::BundleReport::CLI do
 
     it 'raises if offline is used with a report that has no offline mode' do
       [["outdated", "--offline"], ["ruby_check", "--rails-version=8.0.0", "--offline"],
-       ["compatibility", "--ruby-version=3.4.0", "--offline"]].each do |argv|
+       ["compatibility", "--ruby-version=3.4.0", "--offline"], ["outdated", "--off"]].each do |argv|
         expect { described_class.new(argv) }
           .to raise_error(ArgumentError, /--offline only applies to the compatibility report with --rails-version/)
       end

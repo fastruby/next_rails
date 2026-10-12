@@ -32,8 +32,17 @@ class NextRails::BundleReport::CLI
     end
 
     # The other reports have no offline mode: outdated and ruby_check always call rubygems.org
-    if argv.include?("--offline") && (report_type != "compatibility" || argv.any? { |arg| arg.start_with?("--ruby-version") })
+    if option_given?(argv, "--offline") && (report_type != "compatibility" || option_given?(argv, "--ruby-version"))
       raise ArgumentError, "--offline only applies to the compatibility report with --rails-version."
+    end
+  end
+
+  # OptionParser also accepts a unique prefix of a long option (--off for --offline),
+  # so an exact match would miss those.
+  def option_given?(argv, option)
+    argv.any? do |arg|
+      name = arg.split("=", 2).first
+      name.length > 2 && option.start_with?(name)
     end
   end
 
