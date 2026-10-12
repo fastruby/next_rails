@@ -132,8 +132,12 @@ bundle_report outdated --json
 # Show gems incompatible with Rails 7.2
 bundle_report compatibility --rails-version=7.2
 
-# Show gems incompatible with Rails 7.2 without looking up compatible versions on rubygems.org
+# Same, read from the app's Gemfile.lock without looking up compatible versions on rubygems.org:
+# runs without network or the app's gems installed (e.g. after `gem install next_rails`), from the app root
 bundle_report compatibility --rails-version=7.2 --offline
+
+# Same, for the next Gemfile's lockfile
+BUNDLE_GEMFILE=Gemfile.next bundle_report compatibility --rails-version=8.0 --offline
 
 # Show gems incompatible with Ruby 3.3
 bundle_report compatibility --ruby-version=3.3

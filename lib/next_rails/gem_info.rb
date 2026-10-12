@@ -50,6 +50,26 @@ module NextRails
       end
     end
 
+    # Stands in for the Gem::Specification of a gem the lockfile pins.
+    LockedSpecification = Struct.new(:name, :version, :runtime_dependencies, :source) do
+      def git_version
+        source.options["revision"] || "unknown" if source.is_a?(Bundler::Source::Git)
+      end
+    end
+
+    # The gems the app's lockfile pins (Gemfile.lock, or the lockfile of the Gemfile
+    # BUNDLE_GEMFILE names), read without loading the bundle, so the report runs where
+    # the app's gems are not installed. Platform variants of a gem count once, as the
+    # plain one when there is one.
+    def self.from_lockfile
+      require "bundler"
+      lockfile = Bundler::LockfileParser.new(Bundler.read_file(Bundler.default_lockfile))
+      lockfile.specs.group_by(&:name).map do |_name, variants|
+        spec = variants.find { |variant| variant.platform.to_s == "ruby" } || variants.first
+        new(LockedSpecification.new(spec.name, spec.version, spec.dependencies, spec.source))
+      end
+    end
+
     attr_reader :gem_specification, :version, :name, :latest_compatible_version
 
     def initialize(gem_specification)

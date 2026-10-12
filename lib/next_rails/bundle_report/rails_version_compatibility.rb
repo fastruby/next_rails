@@ -81,7 +81,23 @@ class NextRails::BundleReport::RailsVersionCompatibility
   def gem_header(_gem)
     parts = [NextRails::Tint("#{_gem.name} #{_gem.version}").bold]
     parts << NextRails::Tint(" (loaded from git)").magenta if _gem.sourced_from_git?
+    parents = required_by[_gem.name]
+    parts << " (required by #{parents.join(', ')})" if parents.any?
     parts.join
+  end
+
+  # { gem name => ["inherited_resources (~> 1.0)", ...] }: the gems that depend on it,
+  # other than the Rails gems, since bumping that parent is often how it moves.
+  def required_by
+    @required_by ||= @gems.each_with_object(Hash.new { |hash, name| hash[name] = [] }) do |gem, parents|
+      next if gem.from_rails?
+
+      gem.gem_specification.runtime_dependencies.each do |dependency|
+        requirement = dependency.requirement.to_s
+        parent = requirement == ">= 0" ? gem.name : "#{gem.name} (#{requirement})"
+        parents[dependency.name] << parent unless parents[dependency.name].include?(parent)
+      end
+    end
   end
 
   def incompatible_gems

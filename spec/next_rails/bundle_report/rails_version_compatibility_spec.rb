@@ -67,6 +67,26 @@ RSpec.describe NextRails::BundleReport::RailsVersionCompatibility do
       expect(output).not_to include("=> Incompatible")
       expect(output).to include("gems incompatible with Rails 7.1")
     end
+
+    it "names the gems that pull in an incompatible gem" do
+      specification = Gem::Specification.new do |s|
+        s.name = "responders"
+        s.version = "1.1.2"
+        s.add_dependency "railties", ">= 3.2", "< 4.2"
+      end
+      responders = NextRails::GemInfo.new(specification)
+      devise = NextRails::GemInfo.new(Gem::Specification.new { |s| s.name = "devise"; s.version = "3.5.10"; s.add_dependency "responders" })
+      inherited_resources = NextRails::GemInfo.new(Gem::Specification.new { |s| s.name = "inherited_resources"; s.version = "1.6.0"; s.add_dependency "responders", "~> 1.0" })
+      railties = NextRails::GemInfo.new(Gem::Specification.new { |s| s.name = "railties"; s.version = "4.1.16"; s.add_dependency "responders" })
+
+      output =
+        NextRails::BundleReport::RailsVersionCompatibility.new(
+          gems: [devise, inherited_resources, railties, responders],
+          options: { rails_version: "4.2", offline: true }
+        ).generate
+
+      expect(output).to include("(required by devise, inherited_resources (~> 1.0))")
+    end
   end
 
   describe "#incompatible_gems_by_state" do

@@ -87,6 +87,18 @@ RSpec.describe NextRails::BundleReport do
       end
       expect(output).to be_empty
     end
+
+    it "reads the gems from the lockfile instead of the loaded bundle when offline" do
+      gems = [NextRails::GemInfo.new(Gem::Specification.new { |s| s.name = "haml-rails"; s.version = "0.4"; s.add_dependency "actionpack", ">= 3.1", "< 4.1" })]
+      expect(NextRails::GemInfo).to receive(:from_lockfile).and_return(gems)
+      expect(NextRails::GemInfo).not_to receive(:all)
+
+      output = with_captured_stdout do
+        NextRails::BundleReport.rails_compatibility(rails_version: "4.1", offline: true)
+      end
+
+      expect(output).to include("haml-rails 0.4")
+    end
   end
 
   describe ".ruby_compatibility" do

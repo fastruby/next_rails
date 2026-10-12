@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
-# Needs to happen first
-require "bundler/setup"
+# Needs to happen first, except with --offline: that report reads the gems
+# from the lockfile and must run where the app's bundle is not installed.
+require_relative "../lib/next_rails/bundle_report/options"
+require "bundler/setup" unless NextRails::BundleReport::Options.given?(ARGV, "--offline")
 require "next_rails"
 NextRails::BundleReport::CLI.new(ARGV).run

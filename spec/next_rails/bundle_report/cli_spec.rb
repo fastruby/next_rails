@@ -43,6 +43,18 @@ RSpec.describe NextRails::BundleReport::CLI do
       end
     end
 
+    it 'exits with a message if offline finds no lockfile to read' do
+      original = ENV.to_h.select { |key, _| %w[BUNDLE_GEMFILE BUNDLE_LOCKFILE].include?(key) }
+      begin
+        ENV["BUNDLE_GEMFILE"] = "/nonexistent/Gemfile"
+        ENV.delete("BUNDLE_LOCKFILE")
+        expect { described_class.new(["compatibility", "--rails-version=8.0.0", "--offline"]).run }
+          .to raise_error(SystemExit).and output(/--offline reads the app's lockfile/).to_stderr
+      ensure
+        %w[BUNDLE_GEMFILE BUNDLE_LOCKFILE].each { |key| ENV[key] = original[key] }
+      end
+    end
+
     it 'calls ruby_compatibility if called with compatibility with ruby-version option' do
       expect(NextRails::BundleReport).to receive(:ruby_compatibility)
       described_class.new(["compatibility", "--ruby-version=3.4.0"]).run

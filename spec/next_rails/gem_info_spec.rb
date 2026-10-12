@@ -3,8 +3,84 @@
 require "spec_helper"
 
 require "timecop"
+require "tmpdir"
 
 RSpec.describe NextRails::GemInfo do
+  describe ".from_lockfile" do
+    let(:lockfile) do
+      <<-LOCK
+GIT
+  remote: https://github.com/example/forked_gem.git
+  revision: abc123
+  specs:
+    forked_gem (2.0.0)
+      activerecord (>= 3.2, < 4.1)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    haml-rails (0.4)
+      actionpack (>= 3.1, < 4.1)
+    nokogiri (1.6.8-x86_64-linux)
+    nokogiri (1.6.8)
+      mini_portile2 (~> 2.1.0)
+
+PLATFORMS
+  ruby
+  x86_64-linux
+
+DEPENDENCIES
+  forked_gem!
+  haml-rails
+  nokogiri
+      LOCK
+    end
+
+    # The lockfile Bundler would use: the one next to BUNDLE_GEMFILE. BUNDLE_LOCKFILE,
+    # which `bundle exec` sets on newer Bundlers, would point at this repo's lockfile.
+    def gems_from(lockfile_name)
+      Dir.mktmpdir do |dir|
+        gemfile = File.join(dir, lockfile_name.sub(/\.lock\z/, ""))
+        File.write(gemfile, "source \"https://rubygems.org\"\n")
+        File.write("#{gemfile}.lock", lockfile)
+        original = ENV.to_h.select { |key, _| %w[BUNDLE_GEMFILE BUNDLE_LOCKFILE].include?(key) }
+        begin
+          ENV["BUNDLE_GEMFILE"] = gemfile
+          ENV.delete("BUNDLE_LOCKFILE")
+          described_class.from_lockfile
+        ensure
+          %w[BUNDLE_GEMFILE BUNDLE_LOCKFILE].each { |key| ENV[key] = original[key] }
+        end
+      end
+    end
+
+    it "reads each locked gem's version and runtime dependencies from the lockfile" do
+      haml_rails = gems_from("Gemfile.lock").find { |gem| gem.name == "haml-rails" }
+
+      expect(haml_rails.version).to eq(Gem::Version.new("0.4"))
+      expect(haml_rails.unsatisfied_rails_dependencies(rails_version: "4.1").map(&:name)).to eq(["actionpack"])
+      expect(haml_rails.compatible_with_rails?(rails_version: "4.0.13")).to be(true)
+    end
+
+    it "reads the lockfile of the Gemfile BUNDLE_GEMFILE names" do
+      expect(gems_from("Gemfile.next.lock").map(&:name)).to include("haml-rails")
+    end
+
+    it "keeps one gem per name, preferring the plain platform variant" do
+      nokogiri = gems_from("Gemfile.lock").select { |gem| gem.name == "nokogiri" }
+
+      expect(nokogiri.length).to eq(1)
+      expect(nokogiri.first.gem_specification.runtime_dependencies.map(&:name)).to eq(["mini_portile2"])
+    end
+
+    it "marks gems that come from git" do
+      gems = gems_from("Gemfile.lock")
+
+      expect(gems.find { |gem| gem.name == "forked_gem" }.sourced_from_git?).to be(true)
+      expect(gems.find { |gem| gem.name == "haml-rails" }.sourced_from_git?).to be(false)
+    end
+  end
+
   let(:release_date) { Time.utc(2019, 7, 6, 0, 0, 0) }
   let(:now) { Time.utc(2019, 7, 6, 12, 0, 0) }
   let(:spec) do

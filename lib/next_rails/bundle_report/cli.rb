@@ -3,6 +3,7 @@
 require "optparse"
 require "next_rails"
 require "next_rails/bundle_report"
+require "next_rails/bundle_report/options"
 require "next_rails/tint"
 
 class NextRails::BundleReport::CLI
@@ -37,13 +38,8 @@ class NextRails::BundleReport::CLI
     end
   end
 
-  # OptionParser also accepts a unique prefix of a long option (--off for --offline),
-  # so an exact match would miss those.
   def option_given?(argv, option)
-    argv.any? do |arg|
-      name = arg.split("=", 2).first
-      name.length > 2 && option.start_with?(name)
-    end
+    NextRails::BundleReport::Options.given?(argv, option)
   end
 
   def run
@@ -64,6 +60,7 @@ class NextRails::BundleReport::CLI
         Examples:
           #{$0} compatibility --rails-version 5.0
           #{$0} compatibility --rails-version 5.0 --offline
+          BUNDLE_GEMFILE=Gemfile.next #{$0} compatibility --rails-version 5.1 --offline
           #{$0} compatibility --ruby-version 3.3
           #{$0} outdated
           #{$0} outdated --json
@@ -92,7 +89,9 @@ class NextRails::BundleReport::CLI
         options[:include_rails_gems] = true
       end
 
-      opts.on("--offline", "List incompatible gems without looking up compatible versions on rubygems.org (defaults to false)") do
+      opts.on("--offline", "Read the gems from the app's lockfile and list the incompatible ones without looking up " \
+                           "compatible versions on rubygems.org, so it runs without network or the app's gems installed " \
+                           "(defaults to false)") do
         options[:offline] = true
       end
 
@@ -127,11 +126,19 @@ class NextRails::BundleReport::CLI
       if options[:ruby_version]
         NextRails::BundleReport.ruby_compatibility(ruby_version: options.fetch(:ruby_version, "2.3"))
       else
-        NextRails::BundleReport.rails_compatibility(
-          rails_version: options.fetch(:rails_version, "5.0"),
-          include_rails_gems: options.fetch(:include_rails_gems, false),
-          offline: options.fetch(:offline, false)
-        )
+        begin
+          NextRails::BundleReport.rails_compatibility(
+            rails_version: options.fetch(:rails_version, "5.0"),
+            include_rails_gems: options.fetch(:include_rails_gems, false),
+            offline: options.fetch(:offline, false)
+          )
+        rescue Errno::ENOENT, Bundler::GemfileNotFound => e
+          raise unless options[:offline]
+
+          warn NextRails::Tint("--offline reads the app's lockfile: run it from the app root, " \
+                               "or set BUNDLE_GEMFILE to the app's Gemfile (#{e.message})").red.to_s
+          exit 1
+        end
       end
     end
   end

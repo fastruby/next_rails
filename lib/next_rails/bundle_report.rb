@@ -19,7 +19,8 @@ module NextRails
       return unless rails_version
 
       options = { rails_version: rails_version, include_rails_gems: include_rails_gems, offline: offline }
-      puts RailsVersionCompatibility.new(options: options).generate
+      gems = offline ? GemInfo.from_lockfile : GemInfo.all
+      puts RailsVersionCompatibility.new(gems: gems, options: options).generate
     end
 
     def compatible_ruby_version(rails_version)
