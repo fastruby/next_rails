@@ -12,13 +12,8 @@ class NextRails::BundleReport::RailsVersionCompatibility
 
   def incompatible_gems_by_state
     @incompatible_gems_by_state ||= begin
-      if offline
-        # No lookup ran, so GemInfo#state would call every gem :incompatible
-        incompatible_gems.empty? ? {} : { not_checked: incompatible_gems }
-      else
-        incompatible_gems.each { |gem| gem.find_latest_compatible(rails_version: rails_version) }
-        incompatible_gems.group_by { |gem| gem.state(rails_version) }
-      end
+      incompatible_gems.each { |gem| gem.find_latest_compatible(rails_version: rails_version) }
+      incompatible_gems.group_by { |gem| gem.state(rails_version) }
     end
   end
 
@@ -26,15 +21,6 @@ class NextRails::BundleReport::RailsVersionCompatibility
 
   def erb_output
     template = <<-ERB
-<% if incompatible_gems_by_state[:not_checked] -%>
-<%= NextRails::Tint("=> Incompatible with Rails #{rails_version} (compatible versions not looked up):").white.bold %>
-<%= NextRails::Tint("These gems will need to be upgraded or replaced before upgrading to Rails #{rails_version}.").italic %>
-
-<% incompatible_gems_by_state[:not_checked].each do |gem| -%>
-<%= gem_header(gem) %>
-<% end -%>
-
-<% end -%>
 <% if incompatible_gems_by_state[:found_compatible] -%>
 <%= NextRails::Tint("=> Incompatible with Rails #{rails_version} (with new versions that are compatible):").white.bold %>
 <%= NextRails::Tint("These gems will need to be upgraded before upgrading to Rails #{rails_version}.").italic %>
@@ -96,9 +82,5 @@ class NextRails::BundleReport::RailsVersionCompatibility
 
   def include_rails_gems
     @options[:include_rails_gems]
-  end
-
-  def offline
-    @options[:offline]
   end
 end
