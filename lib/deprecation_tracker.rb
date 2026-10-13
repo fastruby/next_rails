@@ -130,7 +130,7 @@ class DeprecationTracker
 
   def self.merge_shards(base_path, options = {})
     require_relative "deprecation_tracker/shard_merger"
-    ShardMerger.new(base_path, delete_shards: options.fetch(:delete_shards, false)).merge[:result]
+    ShardMerger.new(base_path, options).merge[:result]
   end
 
   attr_reader :deprecation_messages, :shitlist_path, :transform_message, :bucket, :mode, :node_index
