@@ -24,3 +24,21 @@ jobs:
           bundler-cache: true
       - name: Run rake task
         run: bundle exec rake
+
+  test-ruby-1-9:
+    # setup-ruby only builds Ruby 1.9.3 for Ubuntu 22.04, and some of the
+    # gemspec's development dependencies do not install on it, so this job
+    # uses its own Gemfile.
+    runs-on: ubuntu-22.04
+    env:
+      BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/ruby_1.9.gemfile
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Ruby 1.9.3
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "1.9.3"
+          bundler-cache: true
+      - name: Run rake task
+        run: bundle exec rake
