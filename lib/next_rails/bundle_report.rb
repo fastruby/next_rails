@@ -62,13 +62,6 @@ module NextRails
       end
     end
 
-    # Net::HTTP.get_response only turns on TLS for https URIs from Ruby 2.0 on.
-    def get_response(uri)
-      Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") do |http|
-        http.get(uri.request_uri)
-      end
-    end
-
     def outdated(format = nil)
       gems = NextRails::GemInfo.all
       sourced_locally = gems.select(&:sourced_locally?)
@@ -132,6 +125,15 @@ module NextRails
 
       puts ''
       puts footer
+    end
+
+    private
+
+    # Net::HTTP.get_response only turns on TLS for https URIs from Ruby 2.0 on.
+    def get_response(uri)
+      Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") do |http|
+        http.get(uri.request_uri)
+      end
     end
   end
 end
