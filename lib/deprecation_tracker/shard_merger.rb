@@ -5,9 +5,9 @@ class DeprecationTracker
   class ShardMerger
     attr_reader :base_path, :delete_shards
 
-    def initialize(base_path, delete_shards: false)
+    def initialize(base_path, options = {})
       @base_path = base_path
-      @delete_shards = delete_shards
+      @delete_shards = options.fetch(:delete_shards, false)
     end
 
     def merge

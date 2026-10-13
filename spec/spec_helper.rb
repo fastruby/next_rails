@@ -36,11 +36,11 @@ RSpec.configure do |config|
 
   config.before(:each) do
     stub_request(:get, /rubygems.org\/api\/v2\/rubygems\/rails\/versions/).
-      with(headers: {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host'=>'rubygems.org', 'User-Agent'=>'Ruby'}).
+      with(headers: {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'User-Agent'=>'Ruby'}).
       to_return(status: 200, body: "{\"ruby_version\": \">= 2.7.0\"}", headers: {})
 
     stub_request(:get, /rubygems.org\/api\/v1\/versions\/rails.json/).
-      with(headers: {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host'=>'rubygems.org', 'User-Agent'=>'Ruby'}).
+      with(headers: {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'User-Agent'=>'Ruby'}).
       to_return(status: 200, body: "[{\"number\": \"7.0.0\"}, {\"number\": \"6.1.6\"}]", headers: {})
   end
 end

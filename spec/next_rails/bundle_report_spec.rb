@@ -6,7 +6,14 @@ require "spec_helper"
 RSpec.describe NextRails::BundleReport do
   describe '.outdated' do
     let(:mock_version) { Struct.new(:version, :age) }
-    let(:mock_gem) { Struct.new(:name, :version, :age, :latest_version, :up_to_date?, :created_at, :sourced_from_git?, :sourced_locally?) }
+    # Ruby 1.9 Struct defines no accessors for members ending in "?", so alias them.
+    let(:mock_gem) do
+      Struct.new(:name, :version, :age, :latest_version, :up_to_date, :created_at, :sourced_from_git, :sourced_locally) do
+        alias_method :up_to_date?, :up_to_date
+        alias_method :sourced_from_git?, :sourced_from_git
+        alias_method :sourced_locally?, :sourced_locally
+      end
+    end
     let(:format_str) { '%b %e, %Y' }
     let(:alpha_date) { Date.parse('2022-01-01') }
     let(:alpha_age) { alpha_date.strftime(format_str) }

@@ -1,3 +1,4 @@
+# encoding: utf-8
 require_relative "next_rails/tint"
 require "json"
 
@@ -20,22 +21,17 @@ class DeprecationTracker
       @callbacks ||= []
     end
 
-    def warn(*messages, uplevel: nil, category: nil, **kwargs)
-      KernelWarnTracker.callbacks.each do |callback|
-        messages.each { |message| callback.call(message) }
-      end
+    if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.0.0")
+      # Keyword arguments are a syntax error before Ruby 2.0, so this definition lives in its own file.
+      require_relative "deprecation_tracker/kernel_warn_tracker"
+    else
+      def warn(*messages)
+        KernelWarnTracker.callbacks.each do |callback|
+          messages.each { |message| callback.call(message) }
+        end
 
-      ruby_version = Gem::Version.new(RUBY_VERSION)
-
-      if ruby_version >= Gem::Version.new("3.2.0")
-        # Kernel#warn supports uplevel, category
-        super(*messages, uplevel: uplevel, category: category)
-      elsif ruby_version >= Gem::Version.new("2.5.0")
-        # Kernel#warn supports only uplevel
-        super(*messages, uplevel: uplevel)
-      else
-        # No keyword args supported
-        super(*messages)
+        # Kernel#warn takes a single message before Ruby 2.0
+        messages.each { |message| super(message) }
       end
     end
   end
@@ -89,16 +85,16 @@ class DeprecationTracker
     # not defined for older Rails versions.
     if defined?(Rails) && defined?(Rails.application) && defined?(Rails.application.deprecators)
       Rails.application.deprecators.each do |deprecator|
-        deprecator.behavior << -> (message, _callstack = nil, _deprecation_horizon = nil, _gem_name = nil) {
+        deprecator.behavior << ->(message, _callstack = nil, _deprecation_horizon = nil, _gem_name = nil) {
           deprecation_tracker.add(message)
         }
       end
     elsif defined?(ActiveSupport)
-      ActiveSupport::Deprecation.behavior << -> (message, _callstack = nil, _deprecation_horizon = nil, _gem_name = nil) {
+      ActiveSupport::Deprecation.behavior << ->(message, _callstack = nil, _deprecation_horizon = nil, _gem_name = nil) {
         deprecation_tracker.add(message)
       }
     end
-    KernelWarnTracker.callbacks << -> (message) { deprecation_tracker.add(message) }
+    KernelWarnTracker.callbacks << ->(message) { deprecation_tracker.add(message) }
 
     deprecation_tracker
   end
@@ -128,19 +124,28 @@ class DeprecationTracker
       tracker.after_run
     end
 
-    ActiveSupport::TestCase.include(MinitestExtension.new(tracker))
+    ActiveSupport::TestCase.send(:include, MinitestExtension.new(tracker))
   end
 
-  def self.merge_shards(base_path, delete_shards: false)
+  def self.merge_shards(base_path, options = {})
     require_relative "deprecation_tracker/shard_merger"
-    ShardMerger.new(base_path, delete_shards: delete_shards).merge[:result]
+    ShardMerger.new(base_path, delete_shards: options.fetch(:delete_shards, false)).merge[:result]
   end
 
   attr_reader :deprecation_messages, :shitlist_path, :transform_message, :bucket, :mode, :node_index
 
-  def initialize(shitlist_path, transform_message = nil, mode = :save, node_index: nil)
+  # Takes `node_index` from a trailing options hash rather than a keyword argument
+  # so the file still parses on Ruby 1.9.
+  def initialize(shitlist_path, *args)
+    options = args.last.is_a?(Hash) ? args.pop : {}
+    if args.size > 2
+      raise ArgumentError, "wrong number of arguments (given #{args.size + 1}, expected 1..3)"
+    end
+    transform_message, mode = args
+    node_index = options[:node_index]
+
     @shitlist_path = shitlist_path
-    @transform_message = transform_message || -> (message) { message }
+    @transform_message = transform_message || ->(message) { message }
     @deprecation_messages = {}
     @mode = mode ? mode.to_sym : :save
     unless self.class.valid_mode?(@mode)

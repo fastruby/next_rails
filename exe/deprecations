@@ -31,7 +31,9 @@ def print_info(deprecation_warnings, opts = {})
       hash[message][:test_files] << test_file
       hash[message][:occurrences] += 1
     end
-  end.sort_by {|message, data| data[:occurrences] }.reverse.to_h
+  end
+  # Hash[] instead of Array#to_h, which Ruby 1.9 lacks
+  frequency_by_message = Hash[frequency_by_message.sort_by {|message, data| data[:occurrences] }.reverse]
 
   puts NextRails::Tint("Ten most common deprecation warnings:").underline
   frequency_by_message.take(10).each do |message, data|

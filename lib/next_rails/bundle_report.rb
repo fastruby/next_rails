@@ -8,24 +8,25 @@ module NextRails
   module BundleReport
     extend self
 
-    def ruby_compatibility(ruby_version: nil)
+    def ruby_compatibility(options = {})
+      ruby_version = options[:ruby_version]
       return unless ruby_version
 
-      options = { ruby_version: ruby_version }
-      puts RubyVersionCompatibility.new(options: options).generate
+      puts RubyVersionCompatibility.new(options: { ruby_version: ruby_version }).generate
     end
 
-    def rails_compatibility(rails_version: nil, include_rails_gems: nil)
+    def rails_compatibility(options = {})
+      rails_version = options[:rails_version]
       return unless rails_version
 
-      options = { rails_version: rails_version, include_rails_gems: include_rails_gems }
-      puts RailsVersionCompatibility.new(options: options).generate
+      report_options = { rails_version: rails_version, include_rails_gems: options[:include_rails_gems] }
+      puts RailsVersionCompatibility.new(options: report_options).generate
     end
 
     def compatible_ruby_version(rails_version)
       # find all the versions of rails gem
       uri = URI('https://rubygems.org/api/v1/versions/rails.json')
-      res = Net::HTTP.get_response(uri)
+      res = get_response(uri)
       all_versions_res = JSON.parse(res.body)
 
       # push all the versions in an array
@@ -46,7 +47,7 @@ module NextRails
 
       if exact_version
         uri = URI("https://rubygems.org/api/v2/rubygems/rails/versions/#{exact_version}.json")
-        res = Net::HTTP.get_response(uri)
+        res = get_response(uri)
         ruby_version = JSON.parse(res.body)["ruby_version"]
       else
         ruby_version = nil
@@ -58,6 +59,13 @@ module NextRails
         ruby_version
       else
         puts "Could not find a compatible ruby version"
+      end
+    end
+
+    # Net::HTTP.get_response only turns on TLS for https URIs from Ruby 2.0 on.
+    def get_response(uri)
+      Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") do |http|
+        http.get(uri.request_uri)
       end
     end
 

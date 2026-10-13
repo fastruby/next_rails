@@ -1,5 +1,5 @@
 class DeprecationTracker
-  VALID_MODES = %i[save compare].freeze
+  VALID_MODES = [:save, :compare].freeze
 
   # Human-readable list of valid modes for error messages and CLI help text.
   def self.valid_modes_display

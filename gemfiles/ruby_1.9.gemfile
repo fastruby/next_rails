@@ -1,0 +1,17 @@
+# Gemfile for running the test suite on Ruby 1.9.3 / 2.0, where several of the
+# development dependencies pinned in the gemspec (webmock 3, byebug, base64) do
+# not install. Run it with:
+#
+#   BUNDLE_GEMFILE=gemfiles/ruby_1.9.gemfile bundle install
+#   BUNDLE_GEMFILE=gemfiles/ruby_1.9.gemfile bundle exec rspec
+source "https://rubygems.org"
+
+gem "rake", "< 11"
+gem "rspec", "~> 3.0"
+gem "timecop", "~> 0.9.1"
+gem "webmock", "~> 2.3"
+gem "addressable", "< 2.5"
+gem "hashdiff", "< 1"
+gem "crack", "< 0.4.4"
+gem "safe_yaml", "~> 1.0"
+gem "json", "< 2"

@@ -4,9 +4,9 @@ class NextRails::BundleReport::RubyVersionCompatibility
   MINIMAL_VERSION = 1.0
   attr_reader :gems, :options
 
-  def initialize(gems: NextRails::GemInfo.all, options: {})
-    @gems = gems
-    @options = options
+  def initialize(args = {})
+    @gems = args.fetch(:gems) { NextRails::GemInfo.all }
+    @options = args.fetch(:options, {})
   end
 
   def generate

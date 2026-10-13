@@ -14,7 +14,7 @@ require "rbconfig"
 # precisely because nothing ever loaded this executable.
 RSpec.describe "exe/deprecations" do
   def cli_path
-    File.expand_path("../exe/deprecations", __dir__)
+    File.expand_path("../../exe/deprecations", __FILE__)
   end
 
   def shitlist_path
@@ -22,8 +22,8 @@ RSpec.describe "exe/deprecations" do
   end
 
   # Runs the CLI in `chdir` and returns [stdout, stderr, exitstatus].
-  def run_cli(args, chdir:)
-    stdout, stderr, status = Open3.capture3(RbConfig.ruby, cli_path, *args, chdir: chdir)
+  def run_cli(args, options)
+    stdout, stderr, status = Open3.capture3(RbConfig.ruby, cli_path, *args, chdir: options.fetch(:chdir))
     [stdout, stderr, status.exitstatus]
   end
 

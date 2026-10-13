@@ -15,3 +15,6 @@
 .ruby-version
 Gemfile.lock
 .gem
+
+# Lockfiles for the alternate Gemfiles under gemfiles/
+gemfiles/*.lock

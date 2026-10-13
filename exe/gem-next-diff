@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# encoding: utf-8
 #
 # Output a markdown table containing the version differences between the Gemfile and Gemfile.next.
 # This can be used as a TODO list to bring the two Gemfiles as close to parity as possible,

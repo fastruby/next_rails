@@ -44,7 +44,7 @@ RSpec.describe DeprecationTracker do
     end
 
     it "transforms messages before adding them" do
-      subject = DeprecationTracker.new("/tmp/foo.txt", -> (message) { message + " foo" })
+      subject = DeprecationTracker.new("/tmp/foo.txt", ->(message) { message + " foo" })
 
       subject.bucket = "bucket 1"
       subject.add("a")
@@ -415,20 +415,20 @@ RSpec.describe DeprecationTracker do
     end
 
     it "uses ENV['DEPRECATION_TRACKER'] as default mode" do
-      stub_const("ENV", ENV.to_h.merge("DEPRECATION_TRACKER" => "compare"))
+      stub_const("ENV", ENV.to_hash.merge("DEPRECATION_TRACKER" => "compare"))
       tracker = DeprecationTracker.init_tracker({})
       expect(tracker.mode).to eq(:compare)
     end
 
     it "raises ArgumentError naming the invalid ENV['DEPRECATION_TRACKER'] value" do
-      stub_const("ENV", ENV.to_h.merge("DEPRECATION_TRACKER" => "bogus"))
+      stub_const("ENV", ENV.to_hash.merge("DEPRECATION_TRACKER" => "bogus"))
       expect {
         DeprecationTracker.init_tracker({})
       }.to raise_error(ArgumentError, /mode must be one of: save, compare\..*bogus/)
     end
 
     it "treats a blank ENV['DEPRECATION_TRACKER'] as unset and defaults to save" do
-      stub_const("ENV", ENV.to_h.merge("DEPRECATION_TRACKER" => ""))
+      stub_const("ENV", ENV.to_hash.merge("DEPRECATION_TRACKER" => ""))
       tracker = DeprecationTracker.init_tracker({})
       expect(tracker.mode).to eq(:save)
     end
@@ -481,7 +481,7 @@ RSpec.describe DeprecationTracker do
 
     it "captures Kernel#warn" do
       warn_messages = []
-      DeprecationTracker::KernelWarnTracker.callbacks << -> (message) { warn_messages << message }
+      DeprecationTracker::KernelWarnTracker.callbacks << ->(message) { warn_messages << message }
 
       expect do
         Kernel.warn "oh"
@@ -493,7 +493,7 @@ RSpec.describe DeprecationTracker do
 
     it "captures Kernel.warn" do
       warn_messages = []
-      DeprecationTracker::KernelWarnTracker.callbacks << -> (message) { warn_messages << message }
+      DeprecationTracker::KernelWarnTracker.callbacks << ->(message) { warn_messages << message }
 
       expect do
         Kernel.warn "oh"
@@ -503,10 +503,10 @@ RSpec.describe DeprecationTracker do
       expect(warn_messages).to eq(["oh", "no"])
     end
 
-    describe "bug when warning uses the uplevel keyword argument" do
+    describe "bug when warning uses the uplevel keyword argument", if: Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.0.0") do
       context "given I setup the DeprecationTracker::KernelWarnTracker with a callback that manipulates messages as Strings" do
 
-        DeprecationTracker::KernelWarnTracker.callbacks << -> (message) { message.gsub("Rails.root/", "") }
+        DeprecationTracker::KernelWarnTracker.callbacks << ->(message) { message.gsub("Rails.root/", "") }
 
         context "and given that I call code that emits a warning using the uplevel keyword arg" do
           it "throws a MissingMethod Error" do
@@ -516,9 +516,9 @@ RSpec.describe DeprecationTracker do
       end
     end
 
-    describe "bug when warning uses unexpected keyword arguments" do
+    describe "bug when warning uses unexpected keyword arguments", if: Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.0.0") do
       it "does not raise an error with unknown keyword args like :deprecation, :span, :stack" do
-        DeprecationTracker::KernelWarnTracker.callbacks << -> (message) { message.to_s }
+        DeprecationTracker::KernelWarnTracker.callbacks << ->(message) { message.to_s }
 
         expect {
           warn("Unknown deprecation warning", deprecation: true, span: 1.2, stack: ["line1", "line2"])
@@ -526,7 +526,7 @@ RSpec.describe DeprecationTracker do
       end
     end
 
-    it "handles known and unknown keyword arguments without raising" do
+    it "handles known and unknown keyword arguments without raising", if: Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.0.0") do
       warnings = []
       DeprecationTracker::KernelWarnTracker.callbacks << ->(msg) { warnings << msg }
 

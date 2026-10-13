@@ -110,15 +110,15 @@ module NextRails
       NullGemInfo.new
     end
 
-    def compatible_with_rails?(rails_version: nil)
-      unsatisfied_rails_dependencies(rails_version: rails_version).empty?
+    def compatible_with_rails?(options = {})
+      unsatisfied_rails_dependencies(rails_version: options[:rails_version]).empty?
     end
 
-    def unsatisfied_rails_dependencies(rails_version: nil)
-      spec_compatible_with_rails?(specification: gem_specification, rails_version: rails_version)
+    def unsatisfied_rails_dependencies(options = {})
+      spec_compatible_with_rails?(specification: gem_specification, rails_version: options[:rails_version])
     end
 
-    def find_latest_compatible(rails_version: nil)
+    def find_latest_compatible(options = {})
       dependency = Gem::Dependency.new(@name)
       fetcher = Gem::SpecFetcher.fetcher # Use fetcher instead of ::new to reduce object allocation.
 
@@ -144,18 +144,18 @@ module NextRails
       # if specs are found, look for the first one from that is compatible
       # with the desired rails version starting from the end
       specs.reverse.each do |spec|
-        if spec_compatible_with_rails?(specification: spec, rails_version: rails_version).empty?
+        if spec_compatible_with_rails?(specification: spec, rails_version: options[:rails_version]).empty?
           @latest_compatible_version = spec
           break
         end
       end
     end
 
-    def spec_compatible_with_rails?(specification: nil, rails_version: nil)
-      rails_dependencies = specification.runtime_dependencies.select {|dependency| RAILS_GEMS.include?(dependency.name) }
+    def spec_compatible_with_rails?(options = {})
+      rails_dependencies = options[:specification].runtime_dependencies.select {|dependency| RAILS_GEMS.include?(dependency.name) }
 
       rails_dependencies.reject do |rails_dependency|
-        rails_dependency.requirement.satisfied_by?(Gem::Version.new(rails_version))
+        rails_dependency.requirement.satisfied_by?(Gem::Version.new(options[:rails_version]))
       end
     end
 
