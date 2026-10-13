@@ -1,11 +1,13 @@
 require "json"
 require "fileutils"
+require_relative "../next_rails/options"
 
 class DeprecationTracker
   class ShardMerger
     attr_reader :base_path, :delete_shards
 
     def initialize(base_path, options = {})
+      NextRails::Options.check!(options, :delete_shards)
       @base_path = base_path
       @delete_shards = options.fetch(:delete_shards, false)
     end

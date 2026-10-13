@@ -1,7 +1,9 @@
 require "next_rails/tint"
+require "next_rails/options"
 
 class NextRails::BundleReport::RailsVersionCompatibility
   def initialize(args = {})
+    NextRails::Options.check!(args, :gems, :options)
     @gems = args.fetch(:gems) { NextRails::GemInfo.all }
     @options = args.fetch(:options, {})
   end

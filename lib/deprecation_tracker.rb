@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 require_relative "next_rails/tint"
+require_relative "next_rails/options"
 require "json"
 
 # A shitlist for deprecation warnings during test runs. It has two modes: "save" and "compare"
@@ -142,6 +143,7 @@ class DeprecationTracker
       raise ArgumentError, "wrong number of arguments (given #{args.size + 1}, expected 1..3)"
     end
     transform_message, mode = args
+    NextRails::Options.check!(options, :node_index)
     node_index = options[:node_index]
 
     @shitlist_path = shitlist_path

@@ -1,3 +1,5 @@
+require "next_rails/options"
+
 module NextRails
   class GemInfo
     class NullGemInfo < GemInfo
@@ -111,14 +113,17 @@ module NextRails
     end
 
     def compatible_with_rails?(options = {})
+      NextRails::Options.check!(options, :rails_version)
       unsatisfied_rails_dependencies(rails_version: options[:rails_version]).empty?
     end
 
     def unsatisfied_rails_dependencies(options = {})
+      NextRails::Options.check!(options, :rails_version)
       spec_compatible_with_rails?(specification: gem_specification, rails_version: options[:rails_version])
     end
 
     def find_latest_compatible(options = {})
+      NextRails::Options.check!(options, :rails_version)
       dependency = Gem::Dependency.new(@name)
       fetcher = Gem::SpecFetcher.fetcher # Use fetcher instead of ::new to reduce object allocation.
 
@@ -152,6 +157,7 @@ module NextRails
     end
 
     def spec_compatible_with_rails?(options = {})
+      NextRails::Options.check!(options, :specification, :rails_version)
       rails_dependencies = options[:specification].runtime_dependencies.select {|dependency| RAILS_GEMS.include?(dependency.name) }
 
       rails_dependencies.reject do |rails_dependency|

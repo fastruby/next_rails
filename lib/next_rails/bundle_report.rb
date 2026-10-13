@@ -3,12 +3,14 @@ require "cgi"
 require "erb"
 require "json"
 require "net/http"
+require "next_rails/options"
 
 module NextRails
   module BundleReport
     extend self
 
     def ruby_compatibility(options = {})
+      NextRails::Options.check!(options, :ruby_version)
       ruby_version = options[:ruby_version]
       return unless ruby_version
 
@@ -16,6 +18,7 @@ module NextRails
     end
 
     def rails_compatibility(options = {})
+      NextRails::Options.check!(options, :rails_version, :include_rails_gems)
       rails_version = options[:rails_version]
       return unless rails_version
 
