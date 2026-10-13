@@ -1,6 +1,7 @@
 # main [(unreleased)](https://github.com/fastruby/next_rails/compare/v1.7.0...main)
 
 - [BUGFIX: example](https://github.com/fastruby/next_rails/pull/<number>)
+
 - [FEATURE: Support Ruby 1.9.3](https://github.com/fastruby/next_rails/pull/<number>)
 
 * Your changes/patches go here.

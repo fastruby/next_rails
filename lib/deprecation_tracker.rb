@@ -1,4 +1,5 @@
 # encoding: utf-8
+
 require_relative "next_rails/tint"
 require "json"
 
@@ -134,8 +135,7 @@ class DeprecationTracker
 
   attr_reader :deprecation_messages, :shitlist_path, :transform_message, :bucket, :mode, :node_index
 
-  # Takes `node_index` from a trailing options hash rather than a keyword argument
-  # so the file still parses on Ruby 1.9.
+  # Takes `node_index` from a trailing options hash rather than a keyword argument so the file still parses on Ruby 1.9.
   def initialize(shitlist_path, *args)
     options = args.last.is_a?(Hash) ? args.pop : {}
     if args.size > 2
