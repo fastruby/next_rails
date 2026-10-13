@@ -503,7 +503,7 @@ RSpec.describe DeprecationTracker do
       expect(warn_messages).to eq(["oh", "no"])
     end
 
-    describe "bug when warning uses the uplevel keyword argument", if: Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.0.0") do
+    describe "bug when warning uses the uplevel keyword argument", if: Gem::Version.new(RUBY_VERSION.dup) >= Gem::Version.new("2.0.0") do
       context "given I setup the DeprecationTracker::KernelWarnTracker with a callback that manipulates messages as Strings" do
 
         DeprecationTracker::KernelWarnTracker.callbacks << ->(message) { message.gsub("Rails.root/", "") }
@@ -516,7 +516,7 @@ RSpec.describe DeprecationTracker do
       end
     end
 
-    describe "bug when warning uses unexpected keyword arguments", if: Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.0.0") do
+    describe "bug when warning uses unexpected keyword arguments", if: Gem::Version.new(RUBY_VERSION.dup) >= Gem::Version.new("2.0.0") do
       it "does not raise an error with unknown keyword args like :deprecation, :span, :stack" do
         DeprecationTracker::KernelWarnTracker.callbacks << ->(message) { message.to_s }
 
@@ -526,7 +526,7 @@ RSpec.describe DeprecationTracker do
       end
     end
 
-    it "handles known and unknown keyword arguments without raising", if: Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.0.0") do
+    it "handles known and unknown keyword arguments without raising", if: Gem::Version.new(RUBY_VERSION.dup) >= Gem::Version.new("2.0.0") do
       warnings = []
       DeprecationTracker::KernelWarnTracker.callbacks << ->(msg) { warnings << msg }
 

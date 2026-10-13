@@ -23,7 +23,9 @@ class DeprecationTracker
       @callbacks ||= []
     end
 
-    if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.0.0")
+    # RUBY_VERSION is frozen, and the RubyGems that ships with Ruby 1.9.3 strips
+    # the string in place, so it gets a copy.
+    if Gem::Version.new(RUBY_VERSION.dup) >= Gem::Version.new("2.0.0")
       # Keyword arguments are a syntax error before Ruby 2.0, so this definition lives in its own file.
       require_relative "deprecation_tracker/kernel_warn_tracker"
     else
@@ -65,7 +67,7 @@ class DeprecationTracker
   end
 
   # Ruby 2.2 and lower doesn't appear to allow overriding of Kernel.warn using `singleton_class.prepend`.
-  if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new("2.3.0")
+  if Gem::Version.new(RUBY_VERSION.dup) >= Gem::Version.new("2.3.0")
     Kernel.singleton_class.prepend(KernelWarnTracker)
   else
     def Kernel.warn(*args, &block)

@@ -5,7 +5,7 @@ class DeprecationTracker
         messages.each { |message| callback.call(message) }
       end
 
-      ruby_version = Gem::Version.new(RUBY_VERSION)
+      ruby_version = Gem::Version.new(RUBY_VERSION.dup)
 
       if ruby_version >= Gem::Version.new("3.2.0")
         # Kernel#warn supports uplevel, category
