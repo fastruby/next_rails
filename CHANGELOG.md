@@ -2,7 +2,7 @@
 
 - [BUGFIX: example](https://github.com/fastruby/next_rails/pull/<number>)
 
-- [FEATURE: Support Ruby 1.9.3](https://github.com/fastruby/next_rails/pull/<number>)
+- [FEATURE: Support Ruby 1.9.3](https://github.com/fastruby/next_rails/pull/204)
 
 * Your changes/patches go here.
 
